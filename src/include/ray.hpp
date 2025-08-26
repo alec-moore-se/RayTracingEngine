@@ -1,5 +1,6 @@
 #pragma once
 
+#include "color.hpp"
 #include "vec3.hpp"
 #include <stdlib.h>
 class ray {
@@ -14,5 +15,7 @@ public:
   const point3 &origin() const { return orig; }
   const vec3 &direction() const { return dir; }
 
-  point3 at(double t) const { return orig + t *dir; };
+  point3 at(double t) const { return orig + t * dir; };
 };
+
+color ray_color(const ray &r);

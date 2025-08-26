@@ -2,12 +2,6 @@
 #include "include/ray.hpp"
 #include <iostream>
 
-color ray_color(const ray &r) {
-  vec3 unit_direction = vec3(r.direction());
-  auto a = 0.5 * (unit_direction.y() + 1.0);
-  return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0, 0, 1.0);
-}
-
 int main() {
   /*
     Camera Positions
@@ -15,7 +9,6 @@ int main() {
   double aspect_ratio = 16.0 / 9.0;
   int image_width = 400;
   int image_height = int(image_width / aspect_ratio);
-  image_height = (image_height < 1) ? 1 : image_height;
 
   double focal_length = 1.0;
   double viewport_height = 2.0;
@@ -31,7 +24,7 @@ int main() {
 
   auto viewport_upper_left = camera_center - vec3(0, 0, focal_length) -
                              viewport_u / 2 - viewport_v / 2;
-  auto pixel100_loc =
+  auto pixel00_loc =
       viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
   std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
@@ -41,7 +34,7 @@ int main() {
               << std::flush;
     for (int i = 0; i < image_width; i++) {
       auto pixel_center =
-          pixel100_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+          pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
       auto ray_direction = pixel_center - camera_center;
       ray r(camera_center, ray_direction);
 
