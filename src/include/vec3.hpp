@@ -15,9 +15,9 @@ public:
   double operator[](uint8_t i) const { return v[i]; }
   double &operator[](uint8_t i) { return v[i]; }
 
-  inline const double x() const { return v[0]; }
-  inline const double y() const { return v[1]; }
-  inline const double z() const { return v[2]; }
+  inline double x() const { return v[0]; }
+  inline double y() const { return v[1]; }
+  inline double z() const { return v[2]; }
 
   vec3 &operator+=(const vec3 &n) {
     v[0] += n.v[0];
