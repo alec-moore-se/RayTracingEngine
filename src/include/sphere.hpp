@@ -4,4 +4,4 @@
 
 class sphere {};
 
-bool hit_sphere(const point3 &origin, double radius, const ray &r);
+double hit_sphere(const point3 &origin, double radius, const ray &r);
