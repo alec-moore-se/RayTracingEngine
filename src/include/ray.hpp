@@ -2,7 +2,7 @@
 
 #include "color.hpp"
 #include "vec3.hpp"
-#include <stdlib.h>
+
 class ray {
   point3 orig;
   vec3 dir;

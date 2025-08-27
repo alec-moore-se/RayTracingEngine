@@ -7,7 +7,6 @@ struct vec3 {
   double v[3];
   vec3() : v{0, 0, 0} {}
   vec3(double x, double y, double z) : v{x, y, z} {}
-  ~vec3() {}
 
   vec3 operator-() const { return vec3(-v[0], -v[1], -v[2]); }
   double operator[](uint8_t i) const { return v[i]; }
@@ -38,6 +37,13 @@ struct vec3 {
   }
 
   double length() const { return std::sqrt(length_squared()); }
+
+  // debug
+  char p[100];
+  std::string toString() const {
+    std::sprintf((char *)p, "[%.5f, %.5f, %.5f]", v[0], v[1], v[2]);
+    return p;
+  }
 };
 
 inline vec3 operator*(const vec3 &a, const vec3 &b) {
@@ -65,8 +71,7 @@ inline vec3 cross_product(const vec3 &a, const vec3 &b) {
               a.x() * b.y() - a.y() * b.x());
 }
 inline std::ostream &operator<<(std::ostream &out, const vec3 &a) {
-  return out << '[' << a.x() << ',' << ' ' << a.y() << ',' << ' ' << a.z()
-             << ']';
+  return out << a.x() << ' ' << a.y() << ' ' << a.z();
 }
 
 using point3 = vec3;

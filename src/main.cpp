@@ -31,9 +31,12 @@ int main() {
   std::printf("P3\n%d %d\n255\n", image_width, image_height);
 
   for (int j = 0; j < image_height; j++) {
+
     std::clog << "\rScanlines remaining: " << (image_height - j) << ' '
               << std::flush;
+
     for (int i = 0; i < image_width; i++) {
+
       auto pixel_center =
           pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
       auto ray_direction = pixel_center - camera_center;
