@@ -4,8 +4,8 @@
 
 int main() {
   /*
-    Camera Positions
-      */
+   * Camera Position and viewport Positions vectors
+   */
   double aspect_ratio = 16.0 / 9.0;
   int image_width = 400;
   int image_height = int(image_width / aspect_ratio);
@@ -28,7 +28,7 @@ int main() {
   auto pixel00_loc =
       viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-  std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+  std::printf("P3\n%d %d\n255\n", image_width, image_height);
 
   for (int j = 0; j < image_height; j++) {
     std::clog << "\rScanlines remaining: " << (image_height - j) << ' '

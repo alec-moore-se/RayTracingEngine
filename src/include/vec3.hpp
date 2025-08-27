@@ -3,10 +3,8 @@
 #include <cmath>
 #include <cstdint>
 #include <ostream>
-class vec3 {
+struct vec3 {
   double v[3];
-
-public:
   vec3() : v{0, 0, 0} {}
   vec3(double x, double y, double z) : v{x, y, z} {}
   ~vec3() {}
@@ -72,4 +70,3 @@ inline std::ostream &operator<<(std::ostream &out, const vec3 &a) {
 }
 
 using point3 = vec3;
-using mag3 = vec3;
