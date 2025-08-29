@@ -1,6 +1,7 @@
 #pragma once
 
 #include "color.hpp"
+#include "commons.hpp"
 #include "vec3.hpp"
 
 class ray {
@@ -17,5 +18,3 @@ public:
 
   point3 at(double t) const { return orig + t * dir; };
 };
-
-color ray_color(const ray &r);

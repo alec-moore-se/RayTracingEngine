@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cmath>
-#include <cstdint>
-#include <ostream>
+#include "commons.hpp"
+
 struct vec3 {
   double v[3];
   vec3() : v{0, 0, 0} {}

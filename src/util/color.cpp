@@ -1,4 +1,5 @@
 #include "../include/color.hpp"
+#include "../include/commons.hpp"
 
 void write_color(std::ostream &out, const color &pixel_color) {
   double r = pixel_color.x();
