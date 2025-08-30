@@ -1,13 +1,14 @@
 #pragma once
 #include "commons.hpp"
+#include "interval.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
 
 struct hit_rec {
   point3 p;
   vec3 norm;
-  double t;
-  bool front_face;
+  double t = 0.0;
+  bool front_face = false;
 
   void set_face_normal(const ray &r, const vec3 &outward_normal) {
     front_face = dot_product(r.direction(), outward_normal) < 0;
@@ -17,6 +18,5 @@ struct hit_rec {
 
 struct hittable {
   virtual ~hittable() = default;
-  virtual bool hit(const ray &r, double ray_tmin, double ray_tmax,
-                   hit_rec &rec) const = 0;
+  virtual bool hit(const ray &r, interval ray_t, hit_rec &rec) const = 0;
 };

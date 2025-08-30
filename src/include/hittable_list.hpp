@@ -2,7 +2,7 @@
 
 #include "commons.hpp"
 #include "hittable.hpp"
-
+#include "interval.hpp"
 
 using std::make_shared;
 using std::shared_ptr;
@@ -17,14 +17,13 @@ struct hittable_list : public hittable {
   void clear() { objects.clear(); }
   void add(shared_ptr<hittable> object) { objects.push_back(object); }
 
-  bool hit(const ray &r, double ray_tmin, double ray_tmax,
-           hit_rec &rec) const override {
+  bool hit(const ray &r, interval ray_t, hit_rec &rec) const override {
     hit_rec tempRec;
     bool hit_ = false;
-    auto closest_cur = ray_tmax;
+    auto closest_cur = ray_t.max;
 
     for (const auto &object : objects) {
-      if (object->hit(r, ray_tmin, ray_tmax, tempRec)) {
+      if (object->hit(r, interval(ray_t.min, closest_cur), tempRec)) {
         hit_ = true;
         closest_cur = tempRec.t;
         rec = tempRec;

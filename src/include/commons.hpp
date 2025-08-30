@@ -13,7 +13,7 @@ using std::shared_ptr;
 using std::unique_ptr;
 using std::vector;
 
-#define infinity double(std::numeric_limits<double>::infinity())
+const double infinity = double(std::numeric_limits<double>::infinity());
 #define PI 3.1415926535897932385
 
 inline double deg_to_rad(double degrees) { return degrees * PI / 180.0; }

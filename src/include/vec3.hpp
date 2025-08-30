@@ -8,8 +8,8 @@ struct vec3 {
   vec3(double x, double y, double z) : v{x, y, z} {}
 
   vec3 operator-() const { return vec3(-v[0], -v[1], -v[2]); }
-  double operator[](uint8_t i) const { return v[i]; }
-  double &operator[](uint8_t i) { return v[i]; }
+  double operator[](int i) const { return v[i]; }
+  double &operator[](int i) { return v[i]; }
 
   inline double x() const { return v[0]; }
   inline double y() const { return v[1]; }
@@ -40,37 +40,38 @@ struct vec3 {
   // debug
   char p[100];
   std::string toString() const {
-    std::sprintf((char *)p, "[%.5f, %.5f, %.5f]", v[0], v[1], v[2]);
+    std::sprintf((char *)p, "[%.5f, %.5f, %.5f]\n", v[0], v[1], v[2]);
     return p;
   }
 };
 
 inline vec3 operator*(const vec3 &a, const vec3 &b) {
-  return vec3(a.x() * b.x(), a.y() * b.y(), a.z() * b.z());
+  return vec3(a.v[0] * b.v[0], a.v[1] * b.v[1], a.v[2] * b.v[2]);
 }
 inline vec3 operator+(const vec3 &a, const vec3 &b) {
-  return vec3(a.x() + b.x(), a.y() + b.y(), a.z() + b.z());
+  return vec3(a.v[0] + b.v[0], a.v[1] + b.v[1], a.v[2] + b.v[2]);
 }
 inline vec3 operator-(const vec3 &a, const vec3 &b) {
-  return vec3(a.x() - b.x(), a.y() - b.y(), a.z() - b.z());
+  return vec3(a.v[0] - b.v[0], a.v[1] - b.v[1], a.v[2] - b.v[2]);
 }
 
 inline vec3 operator*(double t, const vec3 &b) {
-  return vec3(t * b.x(), t * b.y(), t * b.z());
+  return vec3(t * b.v[0], t * b.v[1], t * b.v[2]);
 }
 inline vec3 operator*(const vec3 &b, double t) { return t * b; }
 inline vec3 operator/(const vec3 &b, double t) { return (1 / t) * b; }
 inline vec3 unit_vector(const vec3 &a) { return a / a.length(); }
 
 inline double dot_product(const vec3 &a, const vec3 &b) {
-  return a.x() * b.x() + a.y() * b.y() + a.z() * b.z();
+  return a.v[0] * b.v[0] + a.v[1] * b.v[1] + a.v[2] * b.v[2];
 }
 inline vec3 cross_product(const vec3 &a, const vec3 &b) {
-  return vec3(a.y() * b.z() - a.z() * b.y(), a.z() * b.x() - a.x() * b.z(),
-              a.x() * b.y() - a.y() * b.x());
+  return vec3(a.v[1] * b.v[2] - a.v[2] * b.v[1],
+              a.v[2] * b.v[0] - a.v[0] * b.v[2],
+              a.v[0] * b.v[1] - a.v[1] * b.v[0]);
 }
 inline std::ostream &operator<<(std::ostream &out, const vec3 &a) {
-  return out << a.x() << ' ' << a.y() << ' ' << a.z();
+  return out << a.v[0] << ' ' << a.v[1] << ' ' << a.v[2];
 }
 
 using point3 = vec3;
