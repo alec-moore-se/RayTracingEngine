@@ -30,7 +30,9 @@ public:
     }
     rec.t = root;
     rec.p = r.at(rec.t);
-    auto outward_normal = (rec.p - center) / radius;
+    // FIXME
+    // vec3 outward_normal = unit_vector((rec.p - center) / radius);
+    vec3 outward_normal = (rec.p - center) / radius;
     rec.set_face_normal(r, outward_normal);
 
     return true;

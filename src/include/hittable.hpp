@@ -10,6 +10,9 @@ struct hit_rec {
   double t = 0.0;
   bool front_face = false;
 
+  hit_rec() : p(0, 0, 0), norm() {}
+  hit_rec(const point3 &p, const vec3 &norm) : p(p), norm(norm) {}
+
   void set_face_normal(const ray &r, const vec3 &outward_normal) {
     front_face = dot_product(r.direction(), outward_normal) < 0;
     norm = front_face ? outward_normal : -outward_normal;
