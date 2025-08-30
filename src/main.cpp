@@ -9,7 +9,7 @@ int main() {
   cam.aspect_ratio = 16.0 / 9.0;
   cam.image_width = 400;
   world.add(make_shared<sphere>(point3(0, 0, -1), .51));
-  world.add(make_shared<sphere>(point3(0, -100.5, -1), 10));
+  world.add(make_shared<sphere>(point3(0, -100.5, -2), 100));
 
   cam.render(world);
 }

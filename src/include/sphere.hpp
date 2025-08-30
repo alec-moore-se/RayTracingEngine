@@ -30,8 +30,7 @@ public:
     }
     rec.t = root;
     rec.p = r.at(rec.t);
-    // FIXME
-    // vec3 outward_normal = unit_vector((rec.p - center) / radius);
+    // already normalized due to the nature of a sphere
     vec3 outward_normal = (rec.p - center) / radius;
     rec.set_face_normal(r, outward_normal);
 
