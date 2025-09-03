@@ -40,11 +40,13 @@ class camera {
     pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
   }
 
-  color ray_color(const ray &r, const hittable &world) {
+  color ray_color(const ray &r, int depth, const hittable &world) {
+    if (depth <= 0)
+      return color(0, 0, 0);
     hit_rec rec;
-    if (world.hit(r, interval(0, infinity), rec)) {
+    if (world.hit(r, interval(0.001, infinity), rec)) {
       vec3 direction = random_on_hemisphere(rec.norm);
-      return 0.5 * ray_color(ray(rec.p, direction), world);
+      return 0.5 * ray_color(ray(rec.p, direction), depth - 1, world);
     }
     vec3 unit_direction = unit_vector(r.direction());
     double a = 0.5 * (unit_direction.y() + 1.0);
@@ -70,6 +72,7 @@ public:
   double aspect_ratio = 1.0; // Ratio of image width over height
   int image_width = 100;     // Rendered image width in pixel count
   double samples_per_pixel = 10;
+  int max_depth = 10;
 
   void render(const hittable &world) {
     initialize();
@@ -83,7 +86,7 @@ public:
         color pixel_color = color(0, 0, 0);
         for (int _ = 0; _ < samples_per_pixel; _++) {
           ray r = get_ray(i, j);
-          pixel_color += ray_color(r, world);
+          pixel_color += ray_color(r, max_depth, world);
         }
         write_color(std::cout, pixel_samples_scale * pixel_color);
       }
