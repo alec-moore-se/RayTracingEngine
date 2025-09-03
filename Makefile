@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -g -Wall -Wextra -std=c++23
+CXXFLAGS = -g -Wall -Wextra -std=c++20
 LIBS = -lm
 INCLUDES = -I include
 

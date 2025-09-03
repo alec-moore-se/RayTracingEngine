@@ -37,5 +37,3 @@ public:
     return true;
   }
 };
-
-double hit_sphere(const point3 &origin, double radius, const ray &r);

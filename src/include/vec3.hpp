@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commons.hpp"
+#include <cstdlib>
 
 struct vec3 {
   double v[3];
@@ -36,6 +37,13 @@ struct vec3 {
   }
 
   double length() const { return std::sqrt(length_squared()); }
+  static vec3 random() {
+    return vec3(random_double(), random_double(), random_double());
+  }
+  static vec3 random(double min, double max) {
+    return vec3(random_double(min, max), random_double(min, max),
+                random_double(min, max));
+  }
 
   // debug
   char p[100];
@@ -72,6 +80,23 @@ inline vec3 cross_product(const vec3 &a, const vec3 &b) {
 }
 inline std::ostream &operator<<(std::ostream &out, const vec3 &a) {
   return out << a.v[0] << ' ' << a.v[1] << ' ' << a.v[2];
+}
+
+inline vec3 random_unit_vector() {
+  while (true) {
+    auto p = vec3::random(-1, 1);
+    auto lensq = p.length_squared();
+    if (1e-160 < lensq && lensq <= 1)
+      return p / std::sqrt(lensq);
+  }
+}
+
+inline vec3 random_on_hemisphere(const vec3 &normal) {
+  vec3 on_unit_sphere = random_unit_vector();
+  if (dot_product(on_unit_sphere, normal) > 0.0)
+    return on_unit_sphere;
+  else
+    return -on_unit_sphere;
 }
 
 using point3 = vec3;
