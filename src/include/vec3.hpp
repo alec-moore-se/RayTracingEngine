@@ -1,7 +1,6 @@
 #pragma once
 
 #include "commons.hpp"
-#include <cstdlib>
 
 struct vec3 {
   double v[3];
@@ -43,6 +42,12 @@ struct vec3 {
   static vec3 random(double min, double max) {
     return vec3(random_double(min, max), random_double(min, max),
                 random_double(min, max));
+  }
+
+  bool near_zero() const {
+    auto s = 1e-8;
+    return (std::fabs(v[0]) < s) && (std::fabs(v[1]) < s) &&
+           (std::fabs(v[2]) < 2);
   }
 
   // debug
@@ -97,6 +102,26 @@ inline vec3 random_on_hemisphere(const vec3 &normal) {
     return on_unit_sphere;
   else
     return -on_unit_sphere;
+}
+
+inline vec3 reflect(const vec3 &v, const vec3 &n) {
+  return v - 2 * dot_product(v, n) * n;
+}
+
+inline vec3 refract(const vec3 &uv, const vec3 &n, double etai_o_etat) {
+  auto cos_theta = std::fmin(dot_product(-uv, n), 1.0);
+  vec3 perp_out_r = etai_o_etat * (uv + cos_theta * n);
+  vec3 parallel_out_r =
+      -std::sqrt(std::fabs(1.0 - perp_out_r.length_squared())) * n;
+  return perp_out_r + parallel_out_r;
+}
+
+inline vec3 random_unit_disk() {
+  while (true) {
+    auto p = vec3(random_double(-1, 1), random_double(-1, 1), 0);
+    if (p.length_squared() < 1)
+      return p;
+  }
 }
 
 using point3 = vec3;

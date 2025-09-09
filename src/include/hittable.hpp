@@ -3,15 +3,16 @@
 #include "interval.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
+#include <memory>
+
+class material;
 
 struct hit_rec {
   point3 p;
   vec3 norm;
+  std::shared_ptr<material> mat;
   double t = 0.0;
   bool front_face = false;
-
-  hit_rec() : p(0, 0, 0), norm() {}
-  hit_rec(const point3 &p, const vec3 &norm) : p(p), norm(norm) {}
 
   void set_face_normal(const ray &r, const vec3 &outward_normal) {
     front_face = dot_product(r.direction(), outward_normal) < 0;
