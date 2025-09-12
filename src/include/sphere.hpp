@@ -11,7 +11,8 @@ class sphere : public hittable {
 
 public:
   sphere(const point3 &static_center, double radius, shared_ptr<material> mat)
-      : center(static_center, vec3()), radius(std::fmax(0, radius)), mat(mat) {}
+      : center(static_center, vec3(0, 0, 0)), radius(std::fmax(0, radius)),
+        mat(mat) {}
 
   sphere(const point3 &center1, const point3 &center2, double radius,
          shared_ptr<material> mat)
