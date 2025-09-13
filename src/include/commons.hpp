@@ -8,6 +8,9 @@
 #include <random>
 #include <vector>
 
+#define epslion_flo 1e-5
+#define epsilon_dou 1e-15
+
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
@@ -24,6 +27,9 @@ inline double random_double() {
   static std::mt19937_64 generator;
   return distribution(generator);
 }
+#define abs(x) (((x < 0) ? (-x) : (x)))
+#define cmp_float(x, y) (abs(x - y) <= epslion_flo)
+#define cmp_double(x, y) (abs(x - y) <= epslion_flo)
 
 inline double random_double(double min, double max) {
   return min + (max - min) * random_double();

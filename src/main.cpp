@@ -3,7 +3,7 @@
 #include "include/hittable_list.hpp"
 #include "include/material.hpp"
 #include "include/sphere.hpp"
-#include <memory>
+#include "test/tests.hpp"
 
 int main() {
   hittable_list w;
