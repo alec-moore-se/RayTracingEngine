@@ -11,7 +11,8 @@ struct hit_rec {
   point3 p;
   vec3 norm;
   std::shared_ptr<material> mat;
-  double t = 0.0;
+  double t = 0.0;          // time
+  double u = 0.0, v = 0.0; // bary-centric
   bool front_face = false;
 
   void set_face_normal(const ray &r, const vec3 &outward_normal) {

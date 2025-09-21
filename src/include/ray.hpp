@@ -19,7 +19,7 @@ public:
 
   const point3 &origin() const { return orig; }
   const vec3 &direction() const { return dir; }
-  const double time() const { return time_; }
+  double time() const { return time_; }
 
   point3 at(double t) const { return orig + (t * dir); };
 };
