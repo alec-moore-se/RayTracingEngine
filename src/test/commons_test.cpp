@@ -26,6 +26,7 @@ void compare_float_test() {
   assert(cmp_float((x), 0) == true);
 }
 void compare_double_test() {
+
   double x = 1e-15;
   double y = -1000000000000;
   double p = -1e-4;

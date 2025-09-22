@@ -1,4 +1,5 @@
 #include "../include/color.hpp"
+#include "../include/interval.hpp"
 
 inline double linear_to_gamma(double linear_comp) {
   if (linear_comp > 0)

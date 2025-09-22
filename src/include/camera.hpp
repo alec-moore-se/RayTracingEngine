@@ -1,7 +1,8 @@
 #pragma once
 
+#include "color.hpp"
 #include "commons.hpp"
-#include "hittable_list.hpp"
+#include "hittable.hpp"
 #include "material.hpp"
 #include "vec3.hpp"
 
@@ -110,11 +111,11 @@ public:
                 << std::flush;
       for (int i = 0; i < image_width; i++) {
         color pixel_color = color(0, 0, 0);
-        for (int _ = 0; _ < samples_per_pixel; _++) {
+        for (int s = 0; s < samples_per_pixel; s++) {
           ray r = get_ray(i, j);
           pixel_color += ray_color(r, max_depth, world);
         }
-        // write_color(std::cout, pixel_samples_scale * pixel_color);
+        write_color(std::cout, pixel_samples_scale * pixel_color);
       }
     }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "color.hpp"
 #include "commons.hpp"
 #include "hittable.hpp"
 #include "vec3.hpp"
@@ -7,9 +8,7 @@
 struct material {
   virtual ~material() = default;
   virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
-                       ray &scattered) const {
-    return false;
-  }
+                       ray &scattered) const = 0;
 };
 
 class lambertian : public material {
@@ -61,7 +60,7 @@ public:
   dielectric(double refrac) : refraction_i(refrac) {}
   virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
                        ray &scattered) const override {
-    attenuation = color(1.0, 1, 1);
+    attenuation = color(1.0, 1.0, 1.0);
     double ri = rec.front_face ? (1.0 / refraction_i) : refraction_i;
     vec3 unit_direction = unit_vector(r_in.direction());
     double cos_theta = std::fmin(dot_product(-unit_direction, rec.norm), 1.0);

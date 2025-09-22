@@ -20,7 +20,7 @@ public:
         mat(mat) {}
 
   bool hit(const ray &r, interval ray_t, hit_rec &rec) const override {
-    point3 current_center = r.at(r.time());
+    point3 current_center = center.at(r.time());
     vec3 oc = current_center - r.origin();
     double a = r.direction().length_squared();
     double h = dot_product(r.direction(), oc);

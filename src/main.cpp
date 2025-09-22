@@ -3,13 +3,15 @@
 #include "include/hittable_list.hpp"
 #include "include/material.hpp"
 #include "include/sphere.hpp"
-#include "test/tests.hpp"
+#include "include/triangle.hpp"
 
 int main() {
   hittable_list w;
   auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+  triangle t(vec3(-5000, -5000, -1), vec3(1000, 1000, -1), vec3(0, 0, -10),
+             ground_material);
+  w.add(make_shared<triangle>(t));
   w.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
-
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
       auto choose_mat = random_double();
@@ -52,10 +54,10 @@ int main() {
 
   cam.aspect_ratio = 16.0 / 9.0;
   cam.image_width = 400;
-  cam.samples_per_pixel = 10;
+  cam.samples_per_pixel = 20;
   cam.max_depth = 15;
 
-  cam.vfov = 90;
+  cam.vfov = 60;
   cam.lookfrom = point3(13, 2, 3);
   cam.lookat = point3(0, 0, 0);
   cam.vup = vec3(0, 1, 0);

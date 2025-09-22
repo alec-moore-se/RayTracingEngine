@@ -1,9 +1,10 @@
 #pragma once
 
 #include "commons.hpp"
+#include <array>
 
 struct vec3 {
-  double v[3];
+  std::array<double, 3> v;
   vec3() : v{0, 0, 0} {}
   vec3(double x, double y, double z) : v{x, y, z} {}
 
@@ -48,13 +49,6 @@ struct vec3 {
     auto s = 1e-8;
     return (std::fabs(v[0]) < s) && (std::fabs(v[1]) < s) &&
            (std::fabs(v[2]) < 2);
-  }
-
-  // debug
-  char p[100];
-  std::string toString() const {
-    std::sprintf((char *)p, "[%.5f, %.5f, %.5f]\n", v[0], v[1], v[2]);
-    return p;
   }
 };
 

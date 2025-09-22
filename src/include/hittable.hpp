@@ -1,5 +1,4 @@
 #pragma once
-#include "commons.hpp"
 #include "interval.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"

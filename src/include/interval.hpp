@@ -1,9 +1,9 @@
 #pragma once
-#include "commons.hpp"
 struct interval {
   double min, max;
 
-  interval() : min(+infinity), max(-infinity) {}
+  interval() : interval(empty) {}
+  interval(const interval &i) : interval(i.min, i.max) {}
   interval(double min, double max) : min(min), max(max) {}
 
   double size() const { return max - min; }

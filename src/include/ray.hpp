@@ -1,13 +1,11 @@
 #pragma once
 
-#include "color.hpp"
-#include "commons.hpp"
 #include "vec3.hpp"
 
 class ray {
-  point3 orig;
-  vec3 dir;
-  double time_;
+  point3 orig = point3(0, 0, 0);
+  vec3 dir = vec3(0, 0, 0);
+  double time_ = 0.0;
 
 public:
   ray() {}
@@ -21,5 +19,5 @@ public:
   const vec3 &direction() const { return dir; }
   double time() const { return time_; }
 
-  point3 at(double t) const { return orig + (t * dir); };
+  point3 at(double t) const { return orig + (t * dir); }
 };
