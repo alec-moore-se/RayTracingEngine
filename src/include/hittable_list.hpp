@@ -15,7 +15,10 @@ struct hittable_list : public hittable {
   hittable_list(shared_ptr<hittable> object) { add(object); }
 
   void clear() { objects.clear(); }
-  void add(shared_ptr<hittable> object) { objects.push_back(object); }
+  void add(shared_ptr<hittable> object) {
+    objects.push_back(object);
+    aabb = AABB(aabb, object->bounding_box());
+  }
 
   bool hit(const ray &r, interval ray_t, hit_rec &rec) const override {
     hit_rec tempRec;
@@ -31,4 +34,8 @@ struct hittable_list : public hittable {
     }
     return hit_;
   }
+  AABB bounding_box() const override { return aabb; }
+
+private:
+  AABB aabb;
 };

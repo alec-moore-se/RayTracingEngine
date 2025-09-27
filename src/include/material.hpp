@@ -3,6 +3,7 @@
 #include "color.hpp"
 #include "commons.hpp"
 #include "hittable.hpp"
+#include "texture.hpp"
 #include "vec3.hpp"
 
 struct material {
@@ -12,10 +13,11 @@ struct material {
 };
 
 class lambertian : public material {
-  color albedo;
+  shared_ptr<Texture> tex;
 
 public:
-  lambertian(const color &albedo) : albedo(albedo) {}
+  lambertian(const color &albedo) : tex(make_shared<Solid_Color>(albedo)) {}
+  lambertian(shared_ptr<Texture> tex) : tex(tex) {}
 
   virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
                        ray &scattered) const override {
@@ -24,7 +26,7 @@ public:
       scatter_direction = rec.norm;
 
     scattered = ray(rec.p, scatter_direction, r_in.time());
-    attenuation = albedo;
+    attenuation = tex->value(rec.u, rec.v, rec.p);
     return true;
   }
 };
