@@ -1,3 +1,4 @@
+#pragma once
 #include "commons.hpp"
 #include "hittable.hpp"
 #include "hittable_list.hpp"

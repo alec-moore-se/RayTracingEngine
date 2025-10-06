@@ -52,9 +52,19 @@ public:
     // already normalized due to the nature of a sphere
     vec3 outward_normal = (rec.p - current_center) / radius;
     rec.set_face_normal(r, outward_normal);
+    get_uv(outward_normal, rec.u, rec.v);
     rec.mat = mat;
 
     return true;
   }
   AABB bounding_box() const override { return aabb; }
+
+private:
+  static void get_uv(const point3 &p, double &u, double &v) {
+    auto theta = std::acos(-p.y());
+    auto phi = std::atan2(p.z(), -p.x());
+
+    u = phi / (2.0 * PI);
+    v = theta / PI;
+  }
 };

@@ -6,12 +6,15 @@
 #include "vec3.hpp"
 
 class triangle : public hittable {
+  AABB aabb;
   vec3 a, b, c;
   shared_ptr<material> mat;
 
 public:
   triangle(vec3 a, vec3 b, vec3 c, shared_ptr<material> m)
-      : a(a), b(b), c(c), mat(m) {}
+      : a(a), b(b), c(c), mat(m) {
+    triangle_min_max();
+  }
 
   triangle(const point3 &p, double size, shared_ptr<material> m) {
     vec3 p1 = vec3(-size / 2.0, -sqrt(3) * size / 6.0, 0);
@@ -21,16 +24,14 @@ public:
     b = p2 + p;
     c = p3 + p;
     mat = m;
+    triangle_min_max();
   }
 
   bool hit(const ray &r, interval ray_t, hit_rec &rec) const override {
     return intersect_without_backface(r, ray_t, rec);
   }
 
-  AABB bounding_box() const override {
-    AABB aabb;
-    return aabb;
-  }
+  AABB bounding_box() const override { return aabb; }
 
   bool intersect_without_backface(const ray &r, interval ray_t,
                                   hit_rec &rec) const {
@@ -92,4 +93,29 @@ public:
   }
 
 private:
+  inline void triangle_min_max() {
+    double minx = a.x(), miny = a.y(), minz = a.z();
+    double maxx = a.x(), maxy = a.y(), maxz = a.z();
+
+    minx = (minx < b.x() && minx < c.x()) ? minx
+           : (b.x() < c.x())              ? b.x()
+                                          : c.x();
+    maxx = (maxx > b.x() && maxx > c.x()) ? maxx
+           : (b.x() > c.x())              ? b.x()
+                                          : c.x();
+    miny = (miny < b.y() && miny < c.y()) ? miny
+           : (b.y() < c.y())              ? b.y()
+                                          : c.y();
+    maxy = (maxy > b.y() && maxy > c.y()) ? maxy
+           : (b.y() > c.y())              ? b.y()
+                                          : c.y();
+    minz = (minz < b.z() && minz < c.z()) ? minz
+           : (b.z() < c.z())              ? b.z()
+                                          : c.z();
+    maxz = (maxz > b.z() && maxz > c.z()) ? maxz
+           : (b.z() > c.z())              ? b.z()
+                                          : c.z();
+
+    aabb = AABB(vec3(minx, miny, minz), vec3(maxx, maxy, maxz));
+  }
 };
