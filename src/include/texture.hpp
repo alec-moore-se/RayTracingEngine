@@ -2,6 +2,7 @@
 #include "color.hpp"
 #include "image_util.hpp"
 #include "interval.hpp"
+#include "perlin.hpp"
 
 class Texture {
 public:
@@ -65,6 +66,17 @@ public:
     auto pixel = image.pixel_data(i, j);
 
     auto color_scale = 1.0 / 255.0;
-    return color(color_scale * pixel[0], color_scale * pixel[1], color_scale * pixel[2]);
+    return color(color_scale * pixel[0], color_scale * pixel[1],
+                 color_scale * pixel[2]);
+  }
+};
+
+class Noise_Texture : public Texture {
+  perlin noise;
+
+public:
+  Noise_Texture() {}
+  color value(double u, double v, const point3 &p) const override {
+    return color(1, 1, 1) * noise.noise(p);
   }
 };

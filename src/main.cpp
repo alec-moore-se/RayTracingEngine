@@ -4,6 +4,7 @@
 #include "include/hittable_list.hpp"
 #include "include/material.hpp"
 #include "include/sphere.hpp"
+#include "include/texture.hpp"
 #include "include/triangle.hpp"
 #include <cstdlib>
 void bouncing_spheres() {
@@ -130,6 +131,31 @@ void earth() {
 
   cam.render(hittable_list(globe));
 }
+void perlin_spheres() {
+  hittable_list world;
+
+  auto pertext = make_shared<Noise_Texture>();
+  world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+                                make_shared<lambertian>(pertext)));
+  world.add(make_shared<sphere>(point3(0, 2, 0), 2,
+                                make_shared<lambertian>(pertext)));
+
+  camera cam;
+
+  cam.aspect_ratio = 16.0 / 9.0;
+  cam.image_width = 400;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
+
+  cam.vfov = 20;
+  cam.lookfrom = point3(13, 2, 3);
+  cam.lookat = point3(0, 0, 0);
+  cam.vup = vec3(0, 1, 0);
+
+  cam.defocus_angle = 0;
+
+  cam.render(world);
+}
 int main(int argc, char *argv[]) {
   int picture_to_load = 0;
   if (argc > 1)
@@ -143,6 +169,9 @@ int main(int argc, char *argv[]) {
     break;
   case 2:
     earth();
+    break;
+  case 3:
+    perlin_spheres();
     break;
   }
 }
