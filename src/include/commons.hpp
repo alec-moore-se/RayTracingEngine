@@ -11,9 +11,12 @@
 #define epslion_flo 1e-5
 #define epsilon_dou 1e-15
 
+using std::cos;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
+using std::sin;
+using std::tan;
 using std::unique_ptr;
 using std::vector;
 
