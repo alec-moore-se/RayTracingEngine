@@ -56,6 +56,7 @@ public:
 
   color value(double u, double v, const point3 &p) const override {
 
+    (void)p;
     if (image.get_height() <= 0)
       return color(0, 1, 1);
     u = interval(0, 1).clamp(u);
@@ -72,42 +73,44 @@ public:
 };
 
 class Noise_Texture : public Texture {
-  perlin noise;
-  double scale;
-  enum mode { NORMAL = 0, TURBULENT = 1, MARBLE = 2 };
-  mode m;
-
-public:
-  Noise_Texture(double scale) : scale(scale), m(NORMAL) {}
-  Noise_Texture(double scale, uint8_t m) : scale(scale), m(mode(m)) {}
-  color value1(double u, double v, const point3 &p) const {
+  color turbulence_tex(double u, double v, const point3 &p) const {
     (void)u;
     (void)v;
-    return color(1, 1, 1) * noise.turbulence(p, 7, .6);
+    return color(1, 1, 1) * noise.turbulence(p, 7, .5);
   }
-  color value2(double u, double v, const point3 &p) const {
+  color marble_tex(double u, double v, const point3 &p) const {
     (void)u;
     (void)v;
     return color(0.5, 0.5, 0.5) *
-           (1 + sin(scale * p.z()) + 10 * noise.turbulence(p, 7, 0.5));
+           (1 + sin(scale * p.z() + 10 * noise.turbulence(p, 9, 0.5)));
   }
-  color value3(double u, double v, const point3 &p) const {
+  color normal_perlin_tex(double u, double v, const point3 &p) const {
     (void)u;
     (void)v;
     return color(1, 1, 1) * 0.5 * (1.0 + noise.noise(scale * p));
   }
 
+public:
+  Noise_Texture(double scale) : scale(scale), m(NORMAL) {}
+  Noise_Texture(double scale, uint8_t m) : scale(scale), m(mode(m)) {}
+
+  enum mode { NORMAL = 0, TURBULENT = 1, MARBLE = 2 };
   color value(double u, double v, const point3 &p) const override {
     switch (m) {
     case NORMAL: {
-      return value3(u, v, p);
+      return normal_perlin_tex(u, v, p);
     }
     case TURBULENT: {
-      return value2(u, v, p);
+      return turbulence_tex(u, v, p);
     }
     case MARBLE: {
-      return value1(u, v, p);
+      return marble_tex(u, v, p);
     }
     }
+    (void)p;
+    return color(0, 0, 0);
   }
+  perlin noise;
+  double scale;
+  mode m;
 };

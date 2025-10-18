@@ -28,9 +28,9 @@ private:
 
   static double trilinear_interpolate(double d[2][2][2], double u, double v,
                                       double w) {
-    double a = u * u * (3 - 2 * u);
-    double b = v * v * (3 - 2 * v);
-    double c = w * w * (3 - 2 * w);
+    u = u * u * (3 - 2 * u);
+    v = v * v * (3 - 2 * v);
+    w = w * w * (3 - 2 * w);
     double accumulater = 0.0;
     for (int i = 0; i < 2; i++)
       for (int j = 0; j < 2; j++)
@@ -69,16 +69,13 @@ public:
   }
 
   double noise(const point3 &p) const {
-    double u = p.x() - int(p.x());
-    double v = p.y() - int(p.y());
-    double w = p.z() - int(p.z());
-    u = u * u * (3 - 2 * u);
-    v = v * v * (3 - 2 * v);
-    w = w * w * (3 - 2 * w);
+    double u = p.x() - std::floor(p.x());
+    double v = p.y() - std::floor(p.y());
+    double w = p.z() - std::floor(p.z());
 
-    int i = int(p.x());
-    int j = int(p.y());
-    int k = int(p.z());
+    int i = int(std::floor(p.x()));
+    int j = int(std::floor(p.y()));
+    int k = int(std::floor(p.z()));
 
     vec3 d[2][2][2];
     for (int a = 0; a < 2; a++)

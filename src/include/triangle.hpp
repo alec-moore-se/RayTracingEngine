@@ -63,7 +63,7 @@ public:
     rec.t *= i_det;
     rec.u *= i_det;
     rec.v *= i_det;
-    rec.set_face_normal(r, cross_product(E1, E2));
+    rec.set_face_normal(r, unit_vector(cross_product(E1, E2)));
     rec.mat = mat;
 
     return true;

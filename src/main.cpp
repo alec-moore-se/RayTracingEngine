@@ -131,10 +131,11 @@ void earth() {
 
   cam.render(hittable_list(globe));
 }
+
 void perlin_spheres() {
   hittable_list world;
-
-  auto pertext = make_shared<Noise_Texture>(4.3, 2);
+  Noise_Texture perlin_sphere(4, Noise_Texture::TURBULENT);
+  auto pertext = make_shared<Noise_Texture>(perlin_sphere);
   world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
                                 make_shared<lambertian>(pertext)));
   world.add(make_shared<sphere>(point3(0, 2, 0), 2,
