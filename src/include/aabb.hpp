@@ -1,4 +1,5 @@
 #pragma once
+#include "commons.hpp"
 #include "interval.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
@@ -6,20 +7,33 @@
 #include <sys/types.h>
 
 class AABB {
+  void pad_mins() {
+    if (x.size() < epslion_flo)
+      x = x.expand(epslion_flo);
+    if (y.size() < epslion_flo)
+      y = y.expand(epslion_flo);
+    if (z.size() < epslion_flo)
+      z = z.expand(epslion_flo);
+  }
 
 public:
   interval x, y, z;
   AABB() {}
   AABB(const interval &x, const interval &y, const interval &z)
-      : x(x), y(y), z(z) {}
+      : x(x), y(y), z(z) {
+    pad_mins();
+  }
   AABB(const point3 &a, const point3 &b)
       : x((a.x() <= b.x()) ? interval(a.x(), b.x()) : interval(b.x(), a.x())),
         y((a.y() <= b.y()) ? interval(a.y(), b.y()) : interval(b.y(), a.y())),
-        z((a.z() <= b.z()) ? interval(a.z(), b.z()) : interval(b.z(), a.z())) {}
+        z((a.z() <= b.z()) ? interval(a.z(), b.z()) : interval(b.z(), a.z())) {
+    pad_mins();
+  }
   AABB(const AABB &b1, const AABB &b2) {
     x = interval(b1.x, b2.x);
     y = interval(b1.y, b2.y);
     z = interval(b1.z, b2.z);
+    pad_mins();
   }
 
   const interval &get_axis(const uint8_t i) const {
@@ -46,8 +60,8 @@ public:
       // axis direction v
       double ad_inv = 1.0 / ray_dir[i];
       // at i?
-      auto t0 = (ax.min - ray_orig[i]) * ad_inv;
-      auto t1 = (ax.max - ray_orig[i]) * ad_inv;
+      double t0 = (ax.min - ray_orig[i]) * ad_inv;
+      double t1 = (ax.max - ray_orig[i]) * ad_inv;
 
       if (t0 < t1) {
         if (t0 > ray_t.min)

@@ -3,10 +3,12 @@
 #include "include/commons.hpp"
 #include "include/hittable_list.hpp"
 #include "include/material.hpp"
+#include "include/quadrilaterals.hpp"
 #include "include/sphere.hpp"
 #include "include/texture.hpp"
 #include "include/triangle.hpp"
 #include <cstdlib>
+
 void bouncing_spheres() {
 
   hittable_list w;
@@ -71,7 +73,7 @@ void bouncing_spheres() {
   cam.defocus_angle = 0.6;
   cam.focus_dist = 10.0;
 
-  cam.render(w);
+  cam.threaded_render(w);
 }
 
 void triangles() {
@@ -82,13 +84,13 @@ void triangles() {
   w.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
                             make_shared<lambertian>(checker)));
 
-  auto material1 = make_shared<dielectric>(1.5);
+  auto material1 = make_shared<lambertian>(color(1.5, 254, 254));
   w.add(make_shared<triangle>(point3(0, 1, 0), 2.0, material1));
 
   auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
   w.add(make_shared<triangle>(point3(-4, 1, 0), 2.0, material2));
 
-  auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+  auto material3 = make_shared<lambertian>(color(0.7, 0.6, 0.5));
   w.add(make_shared<triangle>(point3(4, 1, 0), 2.0, material3));
 
   w = hittable_list(make_shared<BVH>(w));
@@ -110,6 +112,7 @@ void triangles() {
 
   cam.render(w);
 }
+
 void earth() {
   auto earth_texture = make_shared<Image_Texture>("earthmap.jpg");
   auto earth_surface = make_shared<lambertian>(earth_texture);
@@ -157,6 +160,47 @@ void perlin_spheres() {
 
   cam.render(world);
 }
+void quadrilaterals() {
+  hittable_list world;
+
+  shared_ptr<material> left_red = make_shared<lambertian>(color(1.0, 0.2, 0.2));
+  shared_ptr<material> back_green =
+      make_shared<lambertian>(color(0.2, 1.0, 0.2));
+  shared_ptr<material> right_blue =
+      make_shared<lambertian>(color(0.2, 0.2, 1.0));
+  shared_ptr<material> upper_orange =
+      make_shared<lambertian>(color(1.0, 0.5, 0.0));
+  shared_ptr<material> lower_teal =
+      make_shared<lambertian>(color(0.2, 0.8, 0.8));
+
+  world.add(make_shared<quadrilateral>(point3(-3, -2, 5), vec3(0, 0, -4),
+                                       vec3(0, 4, 0), left_red));
+  world.add(make_shared<quadrilateral>(point3(-2, -2, 0), vec3(4, 0, 0),
+                                       vec3(0, 4, 0), back_green));
+  world.add(make_shared<quadrilateral>(point3(3, -2, 1), vec3(0, 0, 4),
+                                       vec3(0, 4, 0), right_blue));
+  world.add(make_shared<quadrilateral>(point3(-2, 3, 1), vec3(4, 0, 0),
+                                       vec3(0, 0, 4), upper_orange));
+  world.add(make_shared<quadrilateral>(point3(-2, -3, 5), vec3(4, 0, 0),
+                                       vec3(0, 0, -4), lower_teal));
+
+  camera cam;
+
+  cam.aspect_ratio = 1.0;
+  cam.image_width = 400;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
+
+  cam.vfov = 80;
+  cam.lookfrom = point3(0, 0, 9);
+  cam.lookat = point3(0, 0, 0);
+  cam.vup = vec3(0, 1, 0);
+
+  cam.defocus_angle = 0;
+
+  cam.render(world);
+}
+
 int main(int argc, char *argv[]) {
   int picture_to_load = 0;
   if (argc > 1)
@@ -173,6 +217,9 @@ int main(int argc, char *argv[]) {
     break;
   case 3:
     perlin_spheres();
+    break;
+  case 4:
+    quadrilaterals();
     break;
   }
 }

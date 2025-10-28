@@ -16,7 +16,7 @@ private:
     }
     permute(p, p_count);
   }
-  static void permute(int *p, int n) {
+  static void permute(int *p, int n = p_count) {
     int i;
     for (i = n - 1; i > 0; i--) {
       int target = random_int(0, i);
@@ -69,29 +69,31 @@ public:
   }
 
   double noise(const point3 &p) const {
+    int a, b, c, i, j, k;
     double u = p.x() - std::floor(p.x());
     double v = p.y() - std::floor(p.y());
     double w = p.z() - std::floor(p.z());
 
-    int i = int(std::floor(p.x()));
-    int j = int(std::floor(p.y()));
-    int k = int(std::floor(p.z()));
+    i = int(std::floor(p.x()));
+    j = int(std::floor(p.y()));
+    k = int(std::floor(p.z()));
 
     vec3 d[2][2][2];
-    for (int a = 0; a < 2; a++)
-      for (int b = 0; b < 2; b++)
-        for (int c = 0; c < 2; c++)
+    for (a = 0; a < 2; a++)
+      for (b = 0; b < 2; b++)
+        for (c = 0; c < 2; c++)
           d[a][b][c] = randVec[perm_x[(i + a) & 255] ^ perm_y[(j + b) & 255] ^
                                perm_z[(k + c) & 255]];
 
     return vec3_interpolate(d, u, v, w);
   }
 
-  double turbulence(point3 p, int depth, double added_weight) const {
+  double turbulence(point3 p, int depth = 7, double added_weight = 0.5) const {
+    int i;
     double accumulater = 0.0;
     double weight = 1.0;
 
-    for (int i = 0; i < depth; i++) {
+    for (i = 0; i < depth; i++) {
       accumulater += weight * noise(p);
       weight *= added_weight;
       p *= 2;

@@ -2,10 +2,13 @@
 
 #include <cmath>
 #include <cstdint>
+#include <future>
 #include <iostream>
 #include <memory>
 #include <ostream>
 #include <random>
+#include <sstream>
+#include <thread>
 #include <vector>
 
 #define epslion_flo 1e-5

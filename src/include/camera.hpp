@@ -5,6 +5,10 @@
 #include "hittable.hpp"
 #include "material.hpp"
 #include "vec3.hpp"
+#include <cstdint>
+#include <sstream>
+#include <string>
+#include <thread>
 
 class camera {
   int image_height;
@@ -120,5 +124,59 @@ public:
     }
 
     std::clog << "\rDone.                 \n";
+  }
+  void threaded_render(const hittable &world) {
+    initialize();
+
+    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+
+    const int num_threads = std::thread::hardware_concurrency();
+    int rows_per_thread = image_height / num_threads;
+
+    std::vector<std::thread> threads;
+    std::vector<std::stringstream> partial_results(num_threads);
+
+    for (int t = 0; t < num_threads; ++t) {
+      int y_start = t * rows_per_thread;
+      int y_end =
+          (t == num_threads - 1) ? image_height : y_start + rows_per_thread;
+
+      threads.emplace_back([&, t, y_start, y_end]() {
+        partial_results[t] = threader(y_start, y_end, world);
+      });
+    }
+
+    for (auto &t : threads)
+      t.join();
+
+    for (auto &ss : partial_results)
+      std::cout << ss.str();
+
+    std::clog << "\nDone.\n";
+  }
+  std::stringstream threader(int y_start, int y_end, const hittable &world) {
+
+    std::stringstream ss;
+
+    for (int j = y_start; j < y_end; j++) {
+      std::clog << "\rScanlines remaining for Thread("
+                << std::this_thread::get_id() << "): " << (y_end - j) << ' '
+                << std::flush;
+      for (int i = 0; i < image_width; i++) {
+        color pixel_color(0, 0, 0);
+
+        for (int s = 0; s < samples_per_pixel; s++) {
+
+          ray r = get_ray(i, j);
+          pixel_color += ray_color(r, max_depth, world);
+        }
+        write_color(ss, pixel_samples_scale * pixel_color);
+      }
+    }
+
+    std::clog << "\rDone.                                                      "
+                 "           \n";
+
+    return ss;
   }
 };
