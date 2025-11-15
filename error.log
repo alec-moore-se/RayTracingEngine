@@ -1,0 +1,22 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==60747==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000010 (pc 0x556e21e0b405 bp 0x7ffc0cc742b0 sp 0x7ffc0cc74280 T0)
+==60747==The signal is caused by a READ memory access.
+==60747==Hint: address points to the zero page.
+    #0 0x556e21e0b405 in std::vector<std::shared_ptr<hittable>, std::allocator<std::shared_ptr<hittable> > >::push_back(std::shared_ptr<hittable> const&) /usr/include/c++/15.2.1/bits/stl_vector.h:1418
+    #1 0x556e21df9b94 in hittable_list::add(std::shared_ptr<hittable>) src/include/hittable_list.hpp:19
+    #2 0x556e21e0680a in box(vec3 const&, vec3 const&, std::shared_ptr<material>) src/include/quadrilaterals.hpp:92
+    #3 0x556e21df2487 in final_scene(int, int, int) src/main.cpp:297
+    #4 0x556e21df4e46 in main src/main.cpp:395
+    #5 0x7fa540027674  (/usr/lib/libc.so.6+0x27674) (BuildId: 4fe011c94a88e8aeb6f2201b9eb369f42b4a1e9e)
+    #6 0x7fa540027728 in __libc_start_main (/usr/lib/libc.so.6+0x27728) (BuildId: 4fe011c94a88e8aeb6f2201b9eb369f42b4a1e9e)
+    #7 0x556e21dad664 in _start (/home/lifeg/dev/RayTracingEngine/raytrace+0x9664) (BuildId: a53f9c622502d8a99ed2eb43ca7075465d870a9c)
+
+==60747==Register values:
+rax = 0x0000000000000008  rbx = 0x00007ba53df00000  rcx = 0x0000000000000000  rdx = 0x0000000000000000  
+rdi = 0x0000000000000008  rsi = 0x00007ba53e200040  rbp = 0x00007ffc0cc742b0  rsp = 0x00007ffc0cc74280  
+ r8 = 0x0000000000000000   r9 = 0x0000000000000014  r10 = 0x0000000000006000  r11 = 0x0000000000001000  
+r12 = 0x00000f74a7be0000  r13 = 0x00007ba53df000e0  r14 = 0x00007ffc0cc742d0  r15 = 0x00007ffc0cc74410  
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV src/include/hittable_list.hpp:19 in hittable_list::add(std::shared_ptr<hittable>)
+==60747==ABORTING

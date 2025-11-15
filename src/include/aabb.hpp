@@ -36,6 +36,13 @@ public:
     pad_mins();
   }
 
+  inline AABB &operator+(const vec3 &offset) {
+    this->x + offset.x();
+    this->y + offset.y();
+    this->z + offset.z();
+    return *this;
+  }
+
   const interval &get_axis(const uint8_t i) const {
     if (i == 1)
       return y;
@@ -83,3 +90,10 @@ public:
 
   static const AABB empty, universe;
 };
+
+inline AABB operator+(const AABB &aabb, const vec3 &dis) {
+  return AABB(aabb.x + dis.x(), aabb.y + dis.y(), aabb.z + dis.z());
+}
+inline AABB operator+(const vec3 &dis, const AABB &aabb) {
+  return AABB(aabb.x + dis.x(), aabb.y + dis.y(), aabb.z + dis.z());
+}

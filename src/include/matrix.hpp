@@ -2,9 +2,61 @@
 #include "vec3.hpp"
 
 // double array for general use case
-class square_double_matrix {
-  size_t length;
-  vector<double> elems;
+template <size_t size, typename T> class square_double_matrix {
+  std::array<T, size> data;
+
+public:
+  square_double_matrix() {
+    for (size_t i = 0; i < size; i++)
+      data[i] = 0;
+  }
+
+  T &operator()(size_t i, size_t j) { return data[i * size + j]; }
+
+  const T &operator()(size_t i, size_t j) const { return data[i * size + j]; }
+
+  square_double_matrix<size, T> &operator*=(const square_double_matrix &m) {
+    for (size_t i = 0; i < size; i++)
+      for (size_t j = 0; j < size; j++)
+        data[i * size + j] *= m(i, j);
+    return *this;
+  }
+
+  square_double_matrix<size, T> &
+  operator*(const square_double_matrix &m) const {
+    for (size_t i = 0; i < size; i++)
+      for (size_t j = 0; j < size; j++)
+        data[i * size + j] += m(i, j);
+    return *this;
+  }
+
+  square_double_matrix<size, T> &operator+=(const square_double_matrix &m) {
+    for (size_t i = 0; i < size; i++)
+      for (size_t j = 0; j < size; j++)
+        data[i * size + j] += m(i, j);
+    return *this;
+  }
+
+  square_double_matrix<size, T> &operator*=(double t) {
+    for (size_t i = 0; i < size; i++)
+      for (size_t j = 0; j < size; j++)
+        data[i * size + j] = data[i * size + j] * t;
+    return *this;
+  }
+
+  square_double_matrix<size, T> &operator=(const square_double_matrix &m) {
+    for (size_t i = 0; i < size; i++)
+      for (size_t j = 0; j < size; j++)
+        data[i * size + j] = m(i, j);
+    return *this;
+  }
+
+  square_double_matrix<size, T> &operator-=(const square_double_matrix &m) {
+    for (size_t i = 0; i < size; i++)
+      for (size_t j = 0; j < size; j++)
+        data[i * size + j] -= m(i, j);
+    return *this;
+  }
 };
 
 // for vec3 with a c/w
@@ -15,6 +67,11 @@ class vec4 {
 public:
   vec4() : v(vec3()), w(0) {}
   vec4(const vec3 &v, double w) : v(v), w(w) {}
+  vec4 &operator*=(double t) {
+    this->v *= t;
+    this->w *= t;
+    return *this;
+  }
 };
 
 // for the scene graph

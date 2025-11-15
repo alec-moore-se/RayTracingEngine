@@ -1,7 +1,7 @@
 CXX = g++
 
-CXXFLAGS = -g -Wall -Wextra -std=c++20
-LIBS = -lm
+CXXFLAGS = -g -Wall -Wextra -std=c++20 -fsanitize=address
+LIBS = -lm -lgtest
 INCLUDES = -I include
 
 SRCF := ./src

@@ -23,16 +23,22 @@ class quaternian {
   vec3 V;
   double S;
 
+  inline Q &operator*=(const Q &q) {
+    this->S = this->S * q.S - dot_product(this->V, q.V);
+    this->V = cross_product(this->V, q.V) + this->S * q.V + q.S * this->V;
+    return *this;
+  }
   inline Q &operator*(const Q &q) {
     this->S = this->S * q.S - dot_product(this->V, q.V);
     this->V = cross_product(this->V, q.V) + this->S * q.V + q.S * this->V;
     return *this;
   }
-  inline Q operator-() const { return Q(S, -V[0], -V[1], -V[2]); }
-
-  inline Q inversion(const Q &p) {
-    return Q(p.S, vec3(-p.V.x(), -p.V.y(), -p.V.z()));
+  inline Q &operator-() {
+    -this->V;
+    return *this;
   }
+
+  inline Q operator-(const Q &p) const { return Q(p.S, -p.V); }
 
   /*
    * Rotate and return new Quaternian, axis must be unit_length and angle is
@@ -44,14 +50,14 @@ class quaternian {
     // axis must be unit length
     // rot = <cos t/2, x sin t/2, y sin t/2, z sin t/2>
     double t = deg_to_rad(angle);
-    double t_sin_ = sin(t / 2.0);
+    double half = t / 2.0;
+    double t_sin_ = sin(half);
+    double t_cos_ = cos(half);
     Q p;
     Q rot;
 
-    rot.S = cos(t / 2.0);
-    for (auto i = 0; i < 3; i++) {
-      rot.V[i] = axis[i] * t_sin_;
-    }
+    rot.S = t_cos_;
+    rot.V = axis * t_sin_;
 
     // no scalar, think like unit_length
     p.S = 1;
@@ -59,7 +65,33 @@ class quaternian {
 
     // Rotation p_prime == qinv * p * q
     // Reversing p = q * p_prime * qinv
-    return inversion(rot) * p * rot;
+    return -rot * p * rot;
+  }
+
+  inline vec3 vec_rot(vec3 axis, double angle, vec3 point) {
+    // t = theta to rad
+    // axis must be unit length
+    // rot = <cos t/2, x sin t/2, y sin t/2, z sin t/2>
+    double t = deg_to_rad(angle);
+    double half = t / 2.0;
+    double t_sin_ = sin(half);
+    double t_cos_ = cos(half);
+    Q q;
+
+    q.S = t_cos_;
+    q.V = axis * t_sin_;
+    Q q_inv = -q;
+
+    // no scalar, think like unit_length
+    Q p;
+    p.S = 1;
+    p.V = point;
+
+    // Rotation p_prime == qinv * p * q
+    // Reversing p = q * p_prime * qinv
+    Q res = q_inv * p * q;
+
+    return res.V;
   }
 
 public:

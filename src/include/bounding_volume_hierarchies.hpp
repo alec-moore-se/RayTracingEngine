@@ -4,6 +4,7 @@
 #include "hittable_list.hpp"
 #include <algorithm>
 #include <cstdint>
+
 class BVH : public hittable {
   AABB aabb;
   shared_ptr<hittable> left, right;

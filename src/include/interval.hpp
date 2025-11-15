@@ -35,5 +35,19 @@ struct interval {
     return interval(min - padding, max + padding);
   }
 
+  inline interval &operator+(double dis) {
+    this->min += dis;
+    this->max += dis;
+    return *this;
+  }
+
   static const interval empty, universe;
 };
+
+inline interval operator+(const interval &inter, double dis) {
+  return interval(inter.min + dis, inter.max + dis);
+}
+
+inline interval operator+(double dis, const interval &inter) {
+  return interval(inter.min + dis, inter.max + dis);
+}

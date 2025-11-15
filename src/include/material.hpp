@@ -5,11 +5,24 @@
 #include "hittable.hpp"
 #include "texture.hpp"
 #include "vec3.hpp"
+#include <memory>
 
 struct material {
   virtual ~material() = default;
   virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
-                       ray &scattered) const = 0;
+                       ray &scattered) const {
+    (void)r_in;
+    (void)rec;
+    (void)attenuation;
+    (void)scattered;
+    return false;
+  };
+  virtual color emitted(double u, double v, const point3 &p) const {
+    (void)u;
+    (void)v;
+    (void)p;
+    return color(0, 0, 0);
+  }
 };
 
 class lambertian : public material {
@@ -76,6 +89,33 @@ public:
     else
       direction = refract(unit_direction, rec.norm, ri);
     scattered = ray(rec.p, direction, r_in.time());
+    return true;
+  }
+};
+
+class Diffuse : public material {
+  shared_ptr<Texture> tex;
+
+public:
+  Diffuse(shared_ptr<Texture> tex) : tex(tex) {}
+  Diffuse(const color &emit) : tex(make_shared<Solid_Color>(emit)) {}
+
+  color emitted(double u, double v, const point3 &p) const override {
+    return tex->value(u, v, p);
+  }
+};
+
+class isotropic : public material {
+  shared_ptr<Texture> tex;
+
+public:
+  isotropic(const color &albedo) : tex(make_shared<Solid_Color>(albedo)) {}
+  isotropic(shared_ptr<Texture> tex) : tex(tex) {}
+
+  virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
+                       ray &scattered) const override {
+    scattered = ray(rec.p, random_unit_vector(), r_in.time());
+    attenuation = tex->value(rec.u, rec.v, rec.p);
     return true;
   }
 };
