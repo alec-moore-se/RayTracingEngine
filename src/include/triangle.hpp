@@ -101,7 +101,7 @@ public:
       return false;
     q = cross_product(t, E1);
     rec.v = dot_product(r.direction(), q) * i_det;
-    if (rec.v < 0.0 || rec.v > 1.0)
+    if (rec.v < 0.0 || rec.u + rec.v > 1.0)
       return false;
     rec.t = dot_product(E2, q) * i_det;
 
