@@ -1,3 +1,4 @@
+#pragma once
 #include "commons.hpp"
 #include "vec3.hpp"
 

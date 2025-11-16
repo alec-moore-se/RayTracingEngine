@@ -4,8 +4,8 @@
 #define STB_FAILURE_USRMSG
 #include "external/stb_image.h"
 
+#include "commons.hpp"
 #include <cstdlib>
-#include <iostream>
 
 class image_util {
   const int bytes_per_pixel = 3;

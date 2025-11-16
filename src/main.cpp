@@ -8,7 +8,6 @@
 #include "include/texture.hpp"
 #include "include/triangle.hpp"
 #include "include/volume.hpp"
-#include "test/tests.hpp"
 #include <gtest/gtest.h>
 
 void bouncing_spheres() {
@@ -307,26 +306,23 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
   world.add(make_shared<quadrilateral>(point3(123, 554, 147), vec3(300, 0, 0),
                                        vec3(0, 0, 265), light));
 
-  // auto center1 = point3(400, 400, 200);
-  // auto center2 = center1 + vec3(30, 0, 0);
-  // auto sphere_material = make_shared<lambertian>(color(0.7, 0.3, 0.1));
-  // world.add(make_shared<sphere>(center1, center2, 50, sphere_material));
+  auto center1 = point3(400, 400, 200);
+  auto center2 = center1 + vec3(30, 0, 0);
+  auto sphere_material = make_shared<lambertian>(color(0.7, 0.3, 0.1));
+  world.add(make_shared<sphere>(center1, center2, 50, sphere_material));
 
-  // world.add(make_shared<sphere>(point3(260, 150, 45), 50,
-  //                               make_shared<dielectric>(1.5)));
-  // world.add(make_shared<sphere>(point3(0, 150, 145), 50,
-  //                               make_shared<metal>(color(0.8, 0.8,
-  //                               0.9), 1.0)));
+  world.add(make_shared<sphere>(point3(260, 150, 45), 50,
+                                make_shared<dielectric>(1.5)));
+  world.add(make_shared<sphere>(point3(0, 150, 145), 50,
+                                make_shared<metal>(color(0.8, 0.8, 0.9), 1.0)));
 
-  // auto boundary = make_shared<sphere>(point3(360, 150, 145), 70,
-  //                                     make_shared<dielectric>(1.5));
-  // world.add(boundary);
-  //     world.add(make_shared<constant_medium>(boundary, 0.2, color(0.2, 0.4,
-  //     0.9)));
-  // boundary =
-  //     make_shared<sphere>(point3(0, 0, 0), 5000,
-  //     make_shared<dielectric>(1.5));
-  //     world.add(make_shared<constant_medium>(boundary, .0001, color(1,1,1)));
+  auto boundary = make_shared<sphere>(point3(360, 150, 145), 70,
+                                      make_shared<dielectric>(1.5));
+  world.add(boundary);
+  world.add(make_shared<absorption>(boundary, 0.2, color(0.2, 0.4, 0.9)));
+  boundary =
+      make_shared<sphere>(point3(0, 0, 0), 5000, make_shared<dielectric>(1.5));
+  world.add(make_shared<absorption>(boundary, .0001, color(1, 1, 1)));
 
   auto emat =
       make_shared<lambertian>(make_shared<Image_Texture>("Vagabond.jpg"));
@@ -335,12 +331,12 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
   world.add(make_shared<sphere>(point3(220, 280, 300), 80,
                                 make_shared<lambertian>(pertext)));
 
-  // hittable_list boxes2;
-  // auto white = make_shared<lambertian>(color(.73, .73, .73));
-  // int ns = 1000;
-  // for (int j = 0; j < ns; j++) {
-  //   boxes2.add(make_shared<sphere>(point3::random(0, 165), 10, white));
-  // }
+  hittable_list boxes2;
+  auto white = make_shared<lambertian>(color(.73, .73, .73));
+  int ns = 1000;
+  for (int j = 0; j < ns; j++) {
+    boxes2.add(make_shared<sphere>(point3::random(0, 165), 10, white));
+  }
 
   //   world.add(make_shared<translate>(
   //       make_shared<rotate_y>(
@@ -361,7 +357,6 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
   cam.lookfrom = point3(478, 278, -600);
   cam.lookat = point3(278, 278, 0);
   cam.vup = vec3(0, 1, 0);
-
   cam.defocus_angle = 0;
 
   cam.threaded_render(world);
@@ -414,6 +409,49 @@ void cornell_smoke() {
   cam.threaded_render(world);
 }
 
+void mesh_test_scene() {
+
+  hittable_list world;
+
+  auto ground_mat = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+  world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_mat));
+
+  auto mesh_mat = make_shared<lambertian>(color(0.4, 0.7, 0.9));
+  auto flat_mat = make_shared<lambertian>(color(0, 0, 0));
+  world.add(make_shared<quadrilateral>(
+      point3(-1000, -1000, -30), vec3(2000, 0, 0), vec3(0, 2000, 0), flat_mat));
+  auto light = make_shared<Diffuse>(color(7, 7, 7));
+  world.add(make_shared<quadrilateral>(point3(123, 554, 147), vec3(300, 0, 0),
+                                       vec3(0, 0, 265), light));
+
+  std::string path = "images/bunny.obj";
+
+  std::vector<triangle> tris = load_mesh(path, mesh_mat);
+
+  for (auto &t : tris)
+    world.add(make_shared<triangle>(t));
+
+  world = hittable_list(make_shared<BVH>(world));
+
+  camera cam;
+
+  cam.aspect_ratio = 16.0 / 9.0;
+  cam.image_width = 400;
+  cam.samples_per_pixel = 30;
+  cam.max_depth = 10;
+
+  cam.vfov = 40;
+  cam.lookfrom = point3(2, 5, 11);
+  cam.lookat = point3(0, 5, 0);
+  cam.vup = vec3(0, 1, 0);
+
+  cam.defocus_angle = 0.0;
+  cam.focus_dist = 10.0;
+  cam.background_color = color(0.7, 0.8, 1.0);
+
+  cam.threaded_render(world);
+}
+
 int main(int argc, char *argv[]) {
   int picture_to_load = 8;
   if (argc > 1)
@@ -446,6 +484,9 @@ int main(int argc, char *argv[]) {
     break;
   case 8:
     final_scene(1000, 100, 20);
+    break;
+  case 9:
+    mesh_test_scene();
     break;
   case 99:
     testing::InitGoogleTest(&argc, argv);

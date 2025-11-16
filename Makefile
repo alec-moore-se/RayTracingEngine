@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -g -Wall -Wextra -std=c++20 -fsanitize=address
+CXXFLAGS = -g -Wall -Wextra -std=c++20 -fsanitize=address 
 LIBS = -lm -lgtest
 INCLUDES = -I include
 
