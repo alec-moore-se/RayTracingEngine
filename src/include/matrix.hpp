@@ -12,18 +12,21 @@ public:
       data[i] = 0;
   }
 
+  const size_t get_size() const { return size; }
+
   T &operator()(size_t i, size_t j) { return data[i * size + j]; }
 
   const T &operator()(size_t i, size_t j) const { return data[i * size + j]; }
 
-  square_double_matrix<size, T> &operator*=(const square_double_matrix &m) {
+  inline square_double_matrix<size, T> &
+  operator*=(const square_double_matrix &m) {
     for (size_t i = 0; i < size; i++)
       for (size_t j = 0; j < size; j++)
         data[i * size + j] *= m(i, j);
     return *this;
   }
 
-  square_double_matrix<size, T> &
+  inline square_double_matrix<size, T> &
   operator*(const square_double_matrix &m) const {
     for (size_t i = 0; i < size; i++)
       for (size_t j = 0; j < size; j++)
@@ -31,28 +34,31 @@ public:
     return *this;
   }
 
-  square_double_matrix<size, T> &operator+=(const square_double_matrix &m) {
+  inline square_double_matrix<size, T> &
+  operator+=(const square_double_matrix &m) {
     for (size_t i = 0; i < size; i++)
       for (size_t j = 0; j < size; j++)
         data[i * size + j] += m(i, j);
     return *this;
   }
 
-  square_double_matrix<size, T> &operator*=(double t) {
+  inline square_double_matrix<size, T> &operator*=(double t) {
     for (size_t i = 0; i < size; i++)
       for (size_t j = 0; j < size; j++)
         data[i * size + j] = data[i * size + j] * t;
     return *this;
   }
 
-  square_double_matrix<size, T> &operator=(const square_double_matrix &m) {
+  inline square_double_matrix<size, T> &
+  operator=(const square_double_matrix &m) {
     for (size_t i = 0; i < size; i++)
       for (size_t j = 0; j < size; j++)
         data[i * size + j] = m(i, j);
     return *this;
   }
 
-  square_double_matrix<size, T> &operator-=(const square_double_matrix &m) {
+  inline square_double_matrix<size, T> &
+  operator-=(const square_double_matrix &m) {
     for (size_t i = 0; i < size; i++)
       for (size_t j = 0; j < size; j++)
         data[i * size + j] -= m(i, j);

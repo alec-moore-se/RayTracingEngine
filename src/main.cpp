@@ -4,8 +4,10 @@
 #include "include/hittable_list.hpp"
 #include "include/material.hpp"
 #include "include/quadrilaterals.hpp"
+#include "include/quaternian.hpp"
 #include "include/sphere.hpp"
 #include "include/texture.hpp"
+#include "include/translate.hpp"
 #include "include/triangle.hpp"
 #include "include/volume.hpp"
 #include <gtest/gtest.h>
@@ -76,6 +78,36 @@ void bouncing_spheres() {
   cam.background_color = color(0.7, .8, 1);
 
   cam.threaded_render(w);
+}
+
+void testingScene() {
+  hittable_list world;
+
+  auto mat = make_shared<lambertian>(color(0.6, 0.7, 0.9));
+  auto tall = box(point3(-0.5, 0, -0.5), point3(0.5, 4, 0.5), mat);
+
+  auto r1 = make_shared<rotate>(tall, rotZ, 45);
+
+  auto r2 = make_shared<rotate>(r1, rotX, 45);
+
+  auto r3 = make_shared<rotate>(r2, rotY, 45);
+
+  world.add(tall);
+
+  camera cam;
+  cam.aspect_ratio = 16.0 / 9.0;
+  cam.image_width = 400;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 20;
+
+  cam.vfov = 40;
+  cam.lookfrom = point3(5, 4, 6);
+  cam.lookat = point3(0, 1.5, 0);
+  cam.vup = vec3(0, 1, 0);
+
+  cam.background_color = color(0.6, 0.7, 1.0);
+
+  cam.threaded_render(world);
 }
 
 void triangles() {
@@ -260,13 +292,24 @@ void cornell_box() {
                                        vec3(0, 555, 0), white));
   world.add(box(point3(130, 0, 65), point3(295, 165, 230), white));
   world.add(box(point3(265, 0, 295), point3(430, 330, 460), white));
+  shared_ptr<hittable> box1 =
+      box(point3(0, 0, 0), point3(165, 330, 165), white);
+  box1 = make_shared<rotate>(box1, rotY, 15);
+  box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+  world.add(box1);
+
+  shared_ptr<hittable> box2 =
+      box(point3(0, 0, 0), point3(165, 165, 165), white);
+  box2 = make_shared<rotate>(box2, rotY, -18);
+  box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+  world.add(box2);
 
   camera cam;
 
   cam.aspect_ratio = 1.0;
-  cam.image_width = 600;
-  cam.samples_per_pixel = 200;
-  cam.max_depth = 50;
+  cam.image_width = 300;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 30;
   cam.background_color = color(0, 0, 0);
 
   cam.vfov = 40;
@@ -300,7 +343,7 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
 
   hittable_list world;
 
-  // world.add(make_shared<BVH>(boxes1));
+  world.add(make_shared<BVH>(boxes1));
 
   auto light = make_shared<Diffuse>(color(7, 7, 7));
   world.add(make_shared<quadrilateral>(point3(123, 554, 147), vec3(300, 0, 0),
@@ -325,7 +368,7 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
   world.add(make_shared<absorption>(boundary, .0001, color(1, 1, 1)));
 
   auto emat =
-      make_shared<lambertian>(make_shared<Image_Texture>("Vagabond.jpg"));
+      make_shared<lambertian>(make_shared<Image_Texture>("earthmap.jpg"));
   world.add(make_shared<sphere>(point3(400, 200, 400), 100, emat));
   auto pertext = make_shared<Noise_Texture>(0.2);
   world.add(make_shared<sphere>(point3(220, 280, 300), 80,
@@ -338,12 +381,9 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
     boxes2.add(make_shared<sphere>(point3::random(0, 165), 10, white));
   }
 
-  //   world.add(make_shared<translate>(
-  //       make_shared<rotate_y>(
-  //           make_shared<bvh_node>(boxes2), 15),
-  //           vec3(-100,270,395)
-  //       )
-  //   );
+  world.add(make_shared<translate>(
+      make_shared<rotate>(make_shared<BVH>(boxes2), rotY, 15),
+      vec3(-100, 270, 395)));
 
   camera cam;
 
@@ -485,8 +525,12 @@ int main(int argc, char *argv[]) {
   case 8:
     final_scene(1000, 100, 20);
     break;
+
   case 9:
     mesh_test_scene();
+    break;
+  case 90:
+    testingScene();
     break;
   case 99:
     testing::InitGoogleTest(&argc, argv);

@@ -1,6 +1,7 @@
 #pragma once
 #include "commons.hpp"
 #include "interval.hpp"
+#include "quaternian.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
 #include <cstdint>
@@ -49,6 +50,31 @@ public:
     if (i == 2)
       return z;
     return x;
+  }
+
+  inline AABB &rotateBB(vec3 axis, double angle) {
+    auto bbox = *this;
+
+    point3 max = point3(-infinity, -infinity, -infinity);
+    point3 min = point3(infinity, infinity, infinity);
+
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        for (int k = 0; k < 2; k++) {
+          auto x = i * bbox.x.max + (1 - i) * bbox.x.min;
+          auto y = j * bbox.y.max + (1 - j) * bbox.y.min;
+          auto z = k * bbox.z.max + (1 - k) * bbox.z.min;
+
+          vec3 tester(quaternian::vec_rot(axis, angle, vec3(x, y, z)));
+          for (int c = 0; c < 3; c++) {
+            min[c] = std::fmin(min[c], tester[c]);
+            max[c] = std::fmax(max[c], tester[c]);
+          }
+        }
+      }
+    }
+    *this = AABB(min, max);
+    return *this;
   }
 
   uint8_t longest_axis() const {

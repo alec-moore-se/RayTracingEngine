@@ -3,41 +3,34 @@
 #include "commons.hpp"
 #include "vec3.hpp"
 
-class quaternian {
-  using Q = quaternian;
-  // Hamilton i^2 = j^2 = k^2 = ijk = 1
-  // Rules:
-  // Multiplication Q(p) = <S_p, u_p, v_p, w_p> S is scalar, u,v,w are elems
-  // or <S_p, V_p>
-  // some p and q (Q) -> <S_p * S_q - dot(V_p, V_q), cross(V_p, V_q) + S_pV_q +
-  // S_qV_p>
-  // Inversion:
-  // p^-1 = <S, -X, -Y, -Z>
-  // Given a vector V make Q => p = Q(0, V)
-  // rotation quaternian q = as above
-  // The rotation p' of p around q is given by p' = q^{-1}pq
-  // and to reverse by p = qp'q^-1
-  // Axis-Angle <X, Y, Z> must be unit length
-  // angle = theta
-  // quaternian < cos theta / 2, x sin theta /2, repeat y, z>
+#define rotX vec3(1, 0, 0)
+#define rotY vec3(0, 1, 0)
+#define rotZ vec3(0, 0, 1)
 
-  vec3 V;
+class quaternian {
+  // I dont what to type all that
+  using Q = quaternian;
+
   double S;
+  vec3 V;
+
+public:
+  quaternian() : S(0), V(vec3()) {}
+  quaternian(double S, vec3 V) : S(S), V(V) {}
+  quaternian(double S, double a, double b, double c) : S(S), V(vec3(a, b, c)) {}
+  double scalar() const { return S; }
+  vec3 vector() const { return V; }
 
   inline Q &operator*=(const Q &q) {
     this->S = this->S * q.S - dot_product(this->V, q.V);
     this->V = cross_product(this->V, q.V) + this->S * q.V + q.S * this->V;
     return *this;
   }
-  inline Q &operator*(const Q &q) {
-    this->S = this->S * q.S - dot_product(this->V, q.V);
-    this->V = cross_product(this->V, q.V) + this->S * q.V + q.S * this->V;
-    return *this;
+  inline Q operator*(const Q &q) const {
+    return Q(S * q.S - dot_product(V, q.V),
+             cross_product(V, q.V) + S * q.V + q.S * V);
   }
-  inline Q &operator-() {
-    -this->V;
-    return *this;
-  }
+  inline Q operator-() { return Q(this->S, -this->V); }
 
   inline Q operator-(const Q &p) const { return Q(p.S, -p.V); }
 
@@ -46,7 +39,7 @@ class quaternian {
    * assumed to be in degrees
    * @return Quaternian with rotation applied
    */
-  inline Q quat_rot(vec3 axis, double angle) {
+  inline static Q quat_rot(vec3 axis, double angle) {
     // t = theta to rad
     // axis must be unit length
     // rot = <cos t/2, x sin t/2, y sin t/2, z sin t/2>
@@ -61,15 +54,17 @@ class quaternian {
     rot.V = axis * t_sin_;
 
     // no scalar, think like unit_length
-    p.S = 1;
+    p.S = 0;
     p.V = rot.V;
 
     // Rotation p_prime == qinv * p * q
     // Reversing p = q * p_prime * qinv
-    return -rot * p * rot;
+    Q res = (-rot) * p * rot;
+    return res;
   }
 
-  inline vec3 vec_rot(vec3 axis, double angle, vec3 point) {
+  // rotation for a single vector in a plane
+  inline static vec3 vec_rot(vec3 axis, double angle, vec3 point) {
     // t = theta to rad
     // axis must be unit length
     // rot = <cos t/2, x sin t/2, y sin t/2, z sin t/2>
@@ -81,26 +76,19 @@ class quaternian {
 
     q.S = t_cos_;
     q.V = axis * t_sin_;
-    Q q_inv = -q;
 
     // no scalar, think like unit_length
     Q p;
-    p.S = 1;
+    p.S = 0;
     p.V = point;
 
     // Rotation p_prime == qinv * p * q
     // Reversing p = q * p_prime * qinv
-    Q res = q_inv * p * q;
+    Q res = q * p * -q;
 
-    return res.V;
+    // returning a copy for safety
+    return vec3(res.V);
   }
-
-public:
-  quaternian() : S(0), V(vec3()) {}
-  quaternian(double S, vec3 V) : S(S), V(V) {}
-  quaternian(double S, double a, double b, double c) : S(S), V(vec3(a, b, c)) {}
-  double scalar() const { return S; }
-  vec3 vector() const { return V; }
 };
 
 using Q = quaternian;

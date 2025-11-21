@@ -32,9 +32,9 @@ public:
 
   bool hit(const ray &r, interval ray_t, hit_rec &rec) const override {
 #ifdef BACKFACE_CULLING
-    return intersect_without_backface(r, ray_t, rec);
-#else
     return intersect_with_backface(r, ray_t, rec);
+#else
+    return intersect_without_backface(r, ray_t, rec);
 #endif
   }
 
