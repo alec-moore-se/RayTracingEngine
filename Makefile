@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -Wall -Wextra -std=c++23 -o3
+CXXFLAGS = -Wall -Wextra -std=c++23 -O2
 LIBS = -lm -lgtest
 INCLUDES = -I include
 

@@ -92,7 +92,7 @@ void testingScene() {
 
   auto r3 = make_shared<rotate>(r2, rotY, 45);
 
-  world.add(tall);
+  world.add(r3);
 
   camera cam;
   cam.aspect_ratio = 16.0 / 9.0;
@@ -367,10 +367,21 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
       make_shared<sphere>(point3(0, 0, 0), 5000, make_shared<dielectric>(1.5));
   world.add(make_shared<absorption>(boundary, .0001, color(1, 1, 1)));
 
+  auto pure_white = make_shared<lambertian>(color(1, 1, 1));
+  shared_ptr<hittable> box_smoke =
+      box(point3(340, 170, 145), point3(465, 330, 165), pure_white);
+  world.add(make_shared<absorption>(box_smoke, 0.001, color(0, 0, 0)));
+
   auto emat =
       make_shared<lambertian>(make_shared<Image_Texture>("earthmap.jpg"));
+  auto emat2 =
+      make_shared<Diffuse>(make_shared<Image_Texture>("kagurabachi.png"));
   world.add(make_shared<sphere>(point3(400, 200, 400), 100, emat));
-  auto pertext = make_shared<Noise_Texture>(0.2);
+  auto kag = make_shared<quadrilateral>(point3(423, 354, 847), vec3(900, 0, 0),
+                                        vec3(0, 665, 0), emat2);
+  world.add(kag);
+
+  auto pertext = make_shared<Noise_Texture>(9.5, Noise_Texture::MARBLE);
   world.add(make_shared<sphere>(point3(220, 280, 300), 80,
                                 make_shared<lambertian>(pertext)));
 
@@ -401,6 +412,7 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
 
   cam.threaded_render(world);
 }
+
 void cornell_smoke() {
   hittable_list world;
 
@@ -523,7 +535,7 @@ int main(int argc, char *argv[]) {
     cornell_smoke();
     break;
   case 8:
-    final_scene(1000, 100, 20);
+    final_scene(1000, 30, 5);
     break;
 
   case 9:
