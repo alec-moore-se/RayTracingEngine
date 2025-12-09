@@ -31,14 +31,6 @@ public:
       return;
     if (load("../../images/" + filename_))
       return;
-    if (load("../../../images/" + filename_))
-      return;
-    if (load("../../../../images/" + filename_))
-      return;
-    if (load("../../../../../images/" + filename_))
-      return;
-    if (load("../../../../../../images/" + filename_))
-      return;
   }
   ~image_util() {
     delete[] bdata;
@@ -71,9 +63,6 @@ public:
   }
 
 private:
-  static int clamp(int x, int l, int h) {
-    return (x < l) ? l : (x > h) ? h - 1 : x;
-  }
   static unsigned char float_byte(float v) {
     return (v <= 0.0)   ? 0
            : (v >= 1.0) ? 255

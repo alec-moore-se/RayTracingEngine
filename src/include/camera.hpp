@@ -61,12 +61,12 @@ class camera {
       return color(0, 0, 0);
 
     hit_rec rec;
+    scatter_record srec;
 
     if (!world.hit(r, interval(0.001, infinity), rec))
       return background_color;
 
-    scatter_record srec;
-    color emission_color = rec.mat->emitted(rec.u, rec.v, rec.p);
+    color emission_color = rec.mat->emitted(r, rec);
 
     if (!rec.mat->scatter(r, rec, srec))
       return emission_color;
@@ -74,23 +74,44 @@ class camera {
       return srec.attenuation *
              ray_color(srec.skip_pdf_ray, depth - 1, world, lights);
 
-    //
-    auto light_pdf = make_shared<hittable_pdf>(lights, rec.p);
-    Mixture_PDF mixture_pdf(light_pdf, srec.pdf_ptr);
-    auto scattered = ray(rec.p, mixture_pdf.generate(), r.time());
-    auto pdf = mixture_pdf.value(scattered.direction());
-    //
+    //    auto light_pdf = make_shared<hittable_pdf>(lights, rec.p);
+    //    Mixture_PDF mixture_pdf(light_pdf, srec.pdf_ptr);
+    //    auto scattered = ray(rec.p, mixture_pdf.generate(), r.time());
+    //    auto pdf = mixture_pdf.value(scattered.direction());
+    auto light_pdf = hittable_pdf(lights, rec.p);
+    bool sampler = random_double() < 0.5;
+    double pdf1, pdf2;
+    vec3 scattered_dir;
+    if (sampler) {
+      scattered_dir = light_pdf.generate();
+      pdf1 = light_pdf.value(scattered_dir);
+      pdf2 = srec.pdf_ptr->value(scattered_dir);
+    } else {
+      scattered_dir = srec.pdf_ptr->generate();
+      pdf1 = light_pdf.value(scattered_dir);
+      pdf2 = srec.pdf_ptr->value(scattered_dir);
+    }
 
-    auto scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
+    auto pdf = 0.5 * pdf1 + 0.5 * pdf2;
+    auto scattered = ray(rec.p, scattered_dir, r.time());
+
+    // div by zero or close to zero guard
+    if (std::fabs(pdf) < epsilon_dou)
+      return background_color;
+
+    double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
 
     color sample_color = ray_color(scattered, depth - 1, world, lights);
 
-    // div by zero or close to zero guard
-    if (pdf < epsilon_dou)
-      return emission_color;
+    double pwr_heuristic =
+        (sampler)
+            ? (std::pow(pdf1, 2) / (std::pow(pdf1, 2) + std::pow(pdf2, 2)))
+            : (std::pow(pdf2, 2) / (std::pow(pdf1, 2) + std::pow(pdf2, 2)));
 
     color scatter_color =
-        (srec.attenuation * scattering_pdf * sample_color) / pdf;
+        (srec.attenuation * scattering_pdf * sample_color * pwr_heuristic) /
+        pdf;
+    scatter_color = clamp(scatter_color, 20);
 
     return emission_color + scatter_color;
   }

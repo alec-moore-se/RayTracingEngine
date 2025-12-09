@@ -11,7 +11,7 @@
 #include <thread>
 #include <vector>
 
-#define epslion_flo 1e-5
+#define epsilon_flo 1e-5
 #define epsilon_dou 1e-15
 
 using std::cos;
@@ -34,8 +34,8 @@ inline double random_double() {
   return distribution(generator);
 }
 #define abs(x) (((x < 0) ? (-x) : (x)))
-#define cmp_float(x, y) (abs(x - y) <= epslion_flo)
-#define cmp_double(x, y) (abs(x - y) <= epslion_flo)
+#define cmp_float(x, y) (abs(x - y) <= epsilon_flo)
+#define cmp_double(x, y) (abs(x - y) <= epsilon_flo)
 
 inline double random_double(double min, double max) {
   return min + (max - min) * random_double();
@@ -44,4 +44,10 @@ inline double random_double(double min, double max) {
 inline int random_int() { return int(random_double() + 1); }
 inline int random_int(double min, double max) {
   return int(random_double(min, max + 1));
+}
+inline static int clamp(int x, int l, int h) {
+  return (x < l) ? l : (x > h) ? h - 1 : x;
+}
+inline static double clamp(double x, double l, double h) {
+  return (x < l) ? l : (x > h) ? h - 1 : x;
 }

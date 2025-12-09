@@ -316,7 +316,6 @@ void cornell_box() {
 
   auto glass = make_shared<dielectric>(1.5);
   world.add(make_shared<sphere>(point3(460, 90, 50), 90, glass));
-  // lights.add(make_shared<sphere>(point3(90, 90, 190), 90, glass));
 
   camera cam;
 
@@ -357,28 +356,23 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
       boxes1.add(box(point3(x0, y0, z0), point3(x1, y1, z1), ground));
     }
   }
-
-  // makes an exploding box
-  // looks coolish, just not "realistic"
-  auto pure_white = make_shared<lambertian>(color(1, 1, 1));
-  shared_ptr<hittable> box_smoke =
-      box(point3(340, 170, 145), point3(465, 330, 165), pure_white);
-  //  auto box_smoke =
-  //      box(point3(-10000000, -10000000, -10000000),
-  //          point3(10000000, 10000000, 10000000), pure_white);
-  world.add(make_shared<absorption>(box_smoke, 0.000001, color(244, 30, 0)));
-
   world.add(make_shared<BVH>(boxes1));
 
+  // bright orange box
+  auto box_base = make_shared<lambertian>(color(255, 255, 255));
+  auto white_light = make_shared<Diffuse>(color(255, 255, 255));
+  shared_ptr<hittable> box_smoke =
+      box(point3(540, 170, 145), point3(665, 330, 165), box_base);
+  world.add(make_shared<absorption>(box_smoke, .001, color(244, 30, 0)));
+  world.add(make_shared<translate>(
+      make_shared<absorption>(box_smoke, .00001, color(0, 0, 0)),
+      vec3(.1, .1, .1)));
+
   auto light = make_shared<Diffuse>(color(7, 7, 7));
-  // different lighting
   auto tri_light = make_shared<triangle>(
-      point3(0, 500, 200), vec3(500, 400, 700), vec3(800, 600, 100), light);
-  auto empty_tri_light =
-      make_shared<triangle>(point3(0, 500, 200), vec3(500, 400, 700),
-                            vec3(800, 600, 100), empty_light);
+      point3(0, 550, 200), vec3(650, 550, 700), vec3(300, 650, 150), light);
   world.add(tri_light);
-  lights.add(empty_tri_light);
+  lights.add(tri_light);
 
   // motion blur on sphere
   auto center1 = point3(400, 400, 200);
@@ -388,9 +382,6 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
 
   world.add(make_shared<sphere>(point3(260, 150, 45), 50,
                                 make_shared<dielectric>(1.5)));
-  // having bad interactions with glass in the lights list -
-  // lights.add(make_shared<sphere>(point3(260, 150, 45), 50,
-  // make_shared<dielectric>(1.5)));
   world.add(make_shared<sphere>(point3(0, 150, 145), 50,
                                 make_shared<metal>(color(0.8, 0.8, 0.9), 1.0)));
 
@@ -411,8 +402,6 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
   auto kag = make_shared<quadrilateral>(
       point3(-223, 154, 9547), vec3(600, 0, 0), vec3(0, 665, 0), emat2);
   world.add(kag);
-  // technically a light source, but do not want
-  // rays to go towards it lights.add(kag);
 
   auto pertext = make_shared<Noise_Texture>(4, Noise_Texture::MARBLE);
   world.add(make_shared<sphere>(point3(220, 280, 300), 80,
@@ -425,22 +414,22 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
     boxes2.add(make_shared<sphere>(point3::random(0, 165), 10, white));
   }
 
-  // translate and rotate with quaternions
+  // translate w/ offset and rotate with quaternions
   world.add(make_shared<translate>(
       make_shared<rotate>(make_shared<BVH>(boxes2), rotY, 15),
-      vec3(-100, 270, 395)));
+      vec3(-200, 270, 195)));
 
   camera cam;
 
   // camera aspects
-  cam.aspect_ratio = 1;
+  cam.aspect_ratio = 16.0 / 9.0;
   cam.image_width = image_width;
   cam.samples_per_pixel = samples_per_pixel;
   cam.max_depth = max_depth;
   cam.background_color = color(0, 0, 0);
 
   cam.vfov = 60;
-  cam.lookfrom = point3(478, 278, -600);
+  cam.lookfrom = point3(478, 278, -400);
   cam.lookat = point3(278, 278, 0);
   cam.vup = vec3(0, 1, 0);
   cam.defocus_angle = 0;
@@ -570,7 +559,7 @@ int main(int argc, char *argv[]) {
     cornell_smoke();
     break;
   case 8:
-    final_scene(400, 100, 200);
+    final_scene(1000, 10000, 100);
     break;
   case 9:
     mesh_test_scene();

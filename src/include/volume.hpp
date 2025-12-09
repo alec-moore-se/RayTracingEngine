@@ -17,12 +17,11 @@ public:
   absorption(shared_ptr<hittable> boundary, double density, const color &albedo)
       : boundary(boundary), negative_inverse(-1 / density),
         phase_func(make_shared<isotropic>(albedo)) {}
-
   bool hit(const ray &r, interval ray_t, hit_rec &rec) const override {
     hit_rec rec1, rec2;
     if (!boundary->hit(r, interval::universe, rec1))
       return false;
-    if (!boundary->hit(r, interval(rec1.t + 0001, infinity), rec2))
+    if (!boundary->hit(r, interval(rec1.t + .0001, infinity), rec2))
       return false;
 
     if (rec1.t < ray_t.min)

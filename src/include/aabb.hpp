@@ -9,12 +9,12 @@
 
 class AABB {
   void pad_mins() {
-    if (x.size() < epslion_flo)
-      x = x.expand(epslion_flo);
-    if (y.size() < epslion_flo)
-      y = y.expand(epslion_flo);
-    if (z.size() < epslion_flo)
-      z = z.expand(epslion_flo);
+    if (x.size() < epsilon_dou)
+      x = x.expand(epsilon_dou);
+    if (y.size() < epsilon_dou)
+      y = y.expand(epsilon_dou);
+    if (z.size() < epsilon_dou)
+      z = z.expand(epsilon_dou);
   }
 
 public:

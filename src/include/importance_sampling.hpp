@@ -11,8 +11,8 @@ namespace importance_sampling {
 inline double pdf_of_light(const point3 &p, const vec3 &p_norm, const point3 &q,
                            double light_area) {
   auto to_light = normalize(q - p);
-  auto cos_theta = dot_product(p_norm, to_light);
-  return (std::pow(distance(p, q), 2)) / (std::cos(cos_theta) * light_area);
+  auto theta = dot_product(p_norm, to_light);
+  return (std::pow(distance(p, q), 2)) / (std::cos(theta) * light_area);
 }
 
 // with above

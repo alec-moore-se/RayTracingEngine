@@ -32,10 +32,9 @@ struct material {
     (void)scattered;
     return 0;
   }
-  virtual color emitted(double u, double v, const point3 &p) const {
-    (void)u;
-    (void)v;
-    (void)p;
+  virtual color emitted(const ray &ray_in, const hit_rec &rec) const {
+    (void)ray_in;
+    (void)rec;
     return color(0, 0, 0);
   }
 };
@@ -57,10 +56,9 @@ public:
   }
   double scattering_pdf(const ray &r_in, const hit_rec &rec,
                         const ray &scattered) const override {
-    (void)scattered;
     (void)r_in;
     auto cos_theta = dot_product(rec.norm, unit_vector(scattered.direction()));
-    return (cos_theta <= 0) ? 0 : (cos_theta / PI);
+    return (cos_theta < 0) ? 0 : (cos_theta / PI);
   }
 };
 
@@ -95,8 +93,8 @@ class dielectric : public material {
 
 public:
   dielectric(double refrac) : refraction_i(refrac) {}
-  virtual bool scatter(const ray &r_in, const hit_rec &rec,
-                       scatter_record &srec) const override {
+  bool scatter(const ray &r_in, const hit_rec &rec,
+               scatter_record &srec) const override {
     srec.attenuation = color(1.0, 1.0, 1.0);
     srec.skip_pdf = true;
     srec.pdf_ptr = nullptr;
@@ -124,8 +122,11 @@ public:
   Diffuse(shared_ptr<Texture> tex) : tex(tex) {}
   Diffuse(const color &emit) : tex(make_shared<Solid_Color>(emit)) {}
 
-  color emitted(double u, double v, const point3 &p) const override {
-    return tex->value(u, v, p);
+  color emitted(const ray &ray_in, const hit_rec &rec) const override {
+    (void)ray_in;
+    (void)rec;
+
+    return tex->value(rec.u, rec.v, rec.p);
   }
 };
 
@@ -136,8 +137,8 @@ public:
   isotropic(const color &albedo) : tex(make_shared<Solid_Color>(albedo)) {}
   isotropic(shared_ptr<Texture> tex) : tex(tex) {}
 
-  virtual bool scatter(const ray &r_in, const hit_rec &rec,
-                       scatter_record &srec) const override {
+  bool scatter(const ray &r_in, const hit_rec &rec,
+               scatter_record &srec) const override {
     (void)r_in;
     srec.attenuation = tex->value(rec.u, rec.v, rec.p);
     srec.pdf_ptr = make_shared<Sphere_PDF>();
@@ -145,8 +146,8 @@ public:
     return true;
   }
 
-  virtual double scattering_pdf(const ray &r_in, const hit_rec &rec,
-                                const ray &scattered) const override {
+  double scattering_pdf(const ray &r_in, const hit_rec &rec,
+                        const ray &scattered) const override {
     (void)r_in;
     (void)rec;
     (void)scattered;

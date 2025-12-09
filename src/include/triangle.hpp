@@ -1,6 +1,7 @@
 #pragma once
 
 #define TINYOBJLOADER_IMPLEMENTATION
+#define BACKFACE_CULLING
 #include "external/tiny_obj_loader.h"
 
 #include "commons.hpp"
@@ -75,7 +76,7 @@ public:
     E2 = (c - a);
     p = cross_product(r.direction(), E2);
     det = dot_product(E1, p);
-    if (det < epslion_flo)
+    if (det < epsilon_dou)
       return false;
 
     t = (r.origin() - a);
@@ -112,7 +113,7 @@ public:
     p = cross_product(r.direction(), E2);
     det = dot_product(E1, p);
 
-    if (det > -epslion_flo && det < epslion_flo) {
+    if (det > -epsilon_dou && det < epsilon_flo) {
       return false;
     }
     i_det = 1.0 / det;
