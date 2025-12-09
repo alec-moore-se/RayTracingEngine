@@ -23,11 +23,27 @@ public:
     normal = unit_vector(n);
     D = dot_product(normal, corner);
     w = n / dot_product(n, n);
+    area = n.length();
     set_bounding_box();
   }
   quadrilateral(const quadrilateral &&q)
       : aabb(q.aabb), corner(q.corner), u(q.u), v(q.v), normal(q.normal),
         w(q.w), mat(q.mat), D(q.D) {}
+
+  double pdf_value(const point3 &o, const vec3 &v) const override {
+    hit_rec rec;
+    if (!this->hit(ray(o, v), interval(0.0001, infinity), rec))
+      return 0;
+
+    auto distance_squared = rec.t * rec.t * v.length_squared();
+    auto cosine = std::fabs(dot_product(v, rec.norm) / v.length());
+    return distance_squared / (cosine * area);
+  }
+
+  vec3 random(const point3 &o) const override {
+    auto p = corner + (random_double() * u) + (random_double() * v);
+    return p - o;
+  }
 
   virtual bool hit(const ray &r, interval ray_t, hit_rec &rec) const override {
 
@@ -55,9 +71,8 @@ public:
     rec.set_face_normal(r, normal);
 
     return true;
-
-    return true;
   }
+
   virtual AABB bounding_box() const override { return aabb; }
   virtual bool is_inside(double a, double b, hit_rec &rec) const {
     interval unit_interval(0, 1);
@@ -75,6 +90,7 @@ private:
   point3 corner;
   vec3 u, v, normal, w;
   shared_ptr<material> mat;
+  double area;
   double D;
 };
 

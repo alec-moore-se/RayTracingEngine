@@ -117,5 +117,11 @@ inline vec3 random_unit_disk() {
       return p;
   }
 }
+inline double distance(const vec3 &p, const vec3 &q) {
+  return sqrt(pow(p.x() - q.x(), 2) + pow(p.y() - q.y(), 2) +
+              pow(p.z() - q.z(), 2));
+}
+
+inline vec3 normalize(const vec3 &n) { return n / n.length(); }
 
 using point3 = vec3;

@@ -55,20 +55,42 @@ class camera {
     defocus_disk_v = v * defocus_rad;
   }
 
-  color ray_color(const ray &r, int depth, const hittable &world) {
+  color ray_color(const ray &r, int depth, const hittable &world,
+                  const hittable &lights) {
     if (depth <= 0)
       return color(0, 0, 0);
+
     hit_rec rec;
+
     if (!world.hit(r, interval(0.001, infinity), rec))
       return background_color;
 
-    ray scattered;
-    color attenuation;
+    scatter_record srec;
     color emission_color = rec.mat->emitted(rec.u, rec.v, rec.p);
-    if (!rec.mat->scatter(r, rec, attenuation, scattered))
+
+    if (!rec.mat->scatter(r, rec, srec))
+      return emission_color;
+    if (srec.skip_pdf)
+      return srec.attenuation *
+             ray_color(srec.skip_pdf_ray, depth - 1, world, lights);
+
+    //
+    auto light_pdf = make_shared<hittable_pdf>(lights, rec.p);
+    Mixture_PDF mixture_pdf(light_pdf, srec.pdf_ptr);
+    auto scattered = ray(rec.p, mixture_pdf.generate(), r.time());
+    auto pdf = mixture_pdf.value(scattered.direction());
+    //
+
+    auto scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
+
+    color sample_color = ray_color(scattered, depth - 1, world, lights);
+
+    // div by zero or close to zero guard
+    if (pdf < epsilon_dou)
       return emission_color;
 
-    color scatter_color = attenuation * ray_color(scattered, depth - 1, world);
+    color scatter_color =
+        (srec.attenuation * scattering_pdf * sample_color) / pdf;
 
     return emission_color + scatter_color;
   }
@@ -108,7 +130,7 @@ public:
   double focus_dist = 10;
   color background_color;
 
-  void render(const hittable &world) {
+  void render(const hittable &world, const hittable &lights) {
     initialize();
 
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
@@ -120,7 +142,7 @@ public:
         color pixel_color = color(0, 0, 0);
         for (int s = 0; s < samples_per_pixel; s++) {
           ray r = get_ray(i, j);
-          pixel_color += ray_color(r, max_depth, world);
+          pixel_color += ray_color(r, max_depth, world, lights);
         }
         write_color(std::cout, pixel_samples_scale * pixel_color);
       }
@@ -128,7 +150,7 @@ public:
 
     std::clog << "\rDone.                 \n";
   }
-  void threaded_render(const hittable &world) {
+  void threaded_render(const hittable &world, const hittable &lights) {
     initialize();
 
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
@@ -145,7 +167,7 @@ public:
           (t == num_threads - 1) ? image_height : y_start + rows_per_thread;
 
       threads.emplace_back([&, t, y_start, y_end]() {
-        partial_results[t] = threader(y_start, y_end, world);
+        partial_results[t] = threader(y_start, y_end, world, lights);
       });
     }
 
@@ -154,31 +176,30 @@ public:
 
     for (auto &ss : partial_results)
       std::cout << ss.str();
-
-    std::clog << "\nDone.\n";
   }
-  std::stringstream threader(int y_start, int y_end, const hittable &world) {
+
+  std::stringstream threader(int y_start, int y_end, const hittable &world,
+                             const hittable &lights) {
 
     std::stringstream ss;
 
     for (int j = y_start; j < y_end; j++) {
-      std::clog << "\rScanlines remaining for Thread("
-                << std::this_thread::get_id() << "): " << (y_end - j) << ' '
-                << std::flush;
+      std::clog << "\rScanlines remaining for Thread(" << y_start << '-'
+                << y_end << "): " << y_end - j << ' ' << std::flush;
       for (int i = 0; i < image_width; i++) {
         color pixel_color(0, 0, 0);
 
         for (int s = 0; s < samples_per_pixel; s++) {
 
           ray r = get_ray(i, j);
-          pixel_color += ray_color(r, max_depth, world);
+          pixel_color += ray_color(r, max_depth, world, lights);
         }
         write_color(ss, pixel_samples_scale * pixel_color);
       }
     }
 
-    std::clog << "\rDone.                                                      "
-                 "           \n";
+    std::clog << "\rDone." << y_start << "-" << y_end
+              << "                                       \n";
 
     return ss;
   }

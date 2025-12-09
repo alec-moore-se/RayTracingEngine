@@ -3,20 +3,35 @@
 #include "color.hpp"
 #include "commons.hpp"
 #include "hittable.hpp"
+#include "importance_sampling.hpp"
 #include "texture.hpp"
 #include "vec3.hpp"
 #include <memory>
 
+class scatter_record {
+public:
+  color attenuation;
+  shared_ptr<PDF> pdf_ptr;
+  bool skip_pdf;
+  ray skip_pdf_ray;
+};
+
 struct material {
   virtual ~material() = default;
-  virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
-                       ray &scattered) const {
+  virtual bool scatter(const ray &r_in, const hit_rec &rec,
+                       scatter_record &srec) const {
     (void)r_in;
     (void)rec;
-    (void)attenuation;
-    (void)scattered;
+    (void)srec;
     return false;
   };
+  virtual double scattering_pdf(const ray &r_in, const hit_rec &rec,
+                                const ray &scattered) const {
+    (void)r_in;
+    (void)rec;
+    (void)scattered;
+    return 0;
+  }
   virtual color emitted(double u, double v, const point3 &p) const {
     (void)u;
     (void)v;
@@ -32,15 +47,20 @@ public:
   lambertian(const color &albedo) : tex(make_shared<Solid_Color>(albedo)) {}
   lambertian(shared_ptr<Texture> tex) : tex(tex) {}
 
-  virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
-                       ray &scattered) const override {
-    auto scatter_direction = rec.norm + random_unit_vector();
-    if (scatter_direction.near_zero())
-      scatter_direction = rec.norm;
-
-    scattered = ray(rec.p, scatter_direction, r_in.time());
-    attenuation = tex->value(rec.u, rec.v, rec.p);
+  bool scatter(const ray &r_in, const hit_rec &rec,
+               scatter_record &srec) const override {
+    (void)r_in;
+    srec.attenuation = tex->value(rec.u, rec.v, rec.p);
+    srec.pdf_ptr = make_shared<Cosine_PDF>(rec.norm);
+    srec.skip_pdf = false;
     return true;
+  }
+  double scattering_pdf(const ray &r_in, const hit_rec &rec,
+                        const ray &scattered) const override {
+    (void)scattered;
+    (void)r_in;
+    auto cos_theta = dot_product(rec.norm, unit_vector(scattered.direction()));
+    return (cos_theta <= 0) ? 0 : (cos_theta / PI);
   }
 };
 
@@ -52,13 +72,15 @@ public:
   metal(const color &albedo, double fuzz)
       : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
-  virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
-                       ray &scattered) const override {
-    auto reflect_ = reflect(r_in.direction(), rec.norm);
+  virtual bool scatter(const ray &r_in, const hit_rec &rec,
+                       scatter_record &srec) const override {
+    vec3 reflect_ = reflect(r_in.direction(), rec.norm);
     reflect_ = unit_vector(reflect_) + (fuzz * random_unit_vector());
-    scattered = ray(rec.p, reflect_, r_in.time());
-    attenuation = albedo;
-    return (dot_product(scattered.direction(), rec.norm) > 0);
+    srec.attenuation = albedo;
+    srec.pdf_ptr = nullptr;
+    srec.skip_pdf = true;
+    srec.skip_pdf_ray = ray(rec.p, reflect_, r_in.time());
+    return true;
   }
 };
 
@@ -73,9 +95,11 @@ class dielectric : public material {
 
 public:
   dielectric(double refrac) : refraction_i(refrac) {}
-  virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
-                       ray &scattered) const override {
-    attenuation = color(1.0, 1.0, 1.0);
+  virtual bool scatter(const ray &r_in, const hit_rec &rec,
+                       scatter_record &srec) const override {
+    srec.attenuation = color(1.0, 1.0, 1.0);
+    srec.skip_pdf = true;
+    srec.pdf_ptr = nullptr;
     double ri = rec.front_face ? (1.0 / refraction_i) : refraction_i;
     vec3 unit_direction = unit_vector(r_in.direction());
     double cos_theta = std::fmin(dot_product(-unit_direction, rec.norm), 1.0);
@@ -88,7 +112,7 @@ public:
       direction = reflect(unit_direction, rec.norm);
     else
       direction = refract(unit_direction, rec.norm, ri);
-    scattered = ray(rec.p, direction, r_in.time());
+    srec.skip_pdf_ray = ray(rec.p, direction, r_in.time());
     return true;
   }
 };
@@ -112,10 +136,20 @@ public:
   isotropic(const color &albedo) : tex(make_shared<Solid_Color>(albedo)) {}
   isotropic(shared_ptr<Texture> tex) : tex(tex) {}
 
-  virtual bool scatter(const ray &r_in, const hit_rec &rec, color &attenuation,
-                       ray &scattered) const override {
-    scattered = ray(rec.p, random_unit_vector(), r_in.time());
-    attenuation = tex->value(rec.u, rec.v, rec.p);
+  virtual bool scatter(const ray &r_in, const hit_rec &rec,
+                       scatter_record &srec) const override {
+    (void)r_in;
+    srec.attenuation = tex->value(rec.u, rec.v, rec.p);
+    srec.pdf_ptr = make_shared<Sphere_PDF>();
+    srec.skip_pdf = false;
     return true;
+  }
+
+  virtual double scattering_pdf(const ray &r_in, const hit_rec &rec,
+                                const ray &scattered) const override {
+    (void)r_in;
+    (void)rec;
+    (void)scattered;
+    return 1 / (4 * PI);
   }
 };

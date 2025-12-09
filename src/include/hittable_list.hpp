@@ -36,6 +36,21 @@ struct hittable_list : public hittable {
   }
   AABB bounding_box() const override { return aabb; }
 
+  double pdf_value(const point3 &o, const vec3 &v) const override {
+    auto weight = 1.0 / objects.size();
+    auto sum = 0.0;
+
+    for (const auto &object : objects) {
+      sum += weight * object->pdf_value(o, v);
+    }
+    return sum;
+  }
+
+  vec3 random(const point3 &o) const override {
+    int size = int(objects.size());
+    return objects[random_int(0, size - 1)]->random(o);
+  }
+
 private:
   AABB aabb;
 };

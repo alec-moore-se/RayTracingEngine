@@ -1,6 +1,7 @@
 #pragma once
 #include "commons.hpp"
 #include "hittable.hpp"
+#include "importance_sampling.hpp"
 #include "interval.hpp"
 #include <memory>
 
@@ -59,6 +60,26 @@ public:
   }
   AABB bounding_box() const override { return aabb; }
 
+  double pdf_value(const point3 &o, const vec3 &v) const override {
+    hit_rec rec;
+    if (!this->hit(ray(o, v), interval(0.0001, infinity), rec))
+      return 0;
+
+    auto distance_squared = (center.at(0) - o).length_squared();
+    auto cosine_theta = std::sqrt(1 - radius * radius / distance_squared);
+    auto solid_angle = 2 * PI * (1 - cosine_theta);
+
+    return 1 / solid_angle;
+  }
+
+  vec3 random(const point3 &o) const override {
+    auto direction = center.at(0) - o;
+    auto distance_squared = direction.length_squared();
+    auto onb = importance_sampling::orthonormal_basis(direction);
+    return importance_sampling::transform_onb(
+        rand_sphere(radius, distance_squared), onb);
+  }
+
 private:
   static void get_uv(const point3 &p, double &u, double &v) {
     auto theta = std::acos(-p.y());
@@ -66,5 +87,17 @@ private:
 
     u = phi / (2.0 * PI);
     v = theta / PI;
+  }
+
+  static vec3 rand_sphere(double radius, double distance_squared) {
+    auto r1 = random_double();
+    auto r2 = random_double();
+    auto r3 = 1 + r2 * (std::sqrt(1 - radius * radius / distance_squared) - 1);
+
+    auto phi = 2 * PI * r1;
+    auto x = std::cos(phi) * std::sqrt(1 - r3 * r3);
+    auto y = std::sin(phi) * std::sqrt(1 - r3 * r3);
+
+    return vec3(x, y, r3);
   }
 };

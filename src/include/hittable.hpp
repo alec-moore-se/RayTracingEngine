@@ -25,4 +25,13 @@ struct hittable {
   virtual ~hittable() = default;
   virtual bool hit(const ray &r, interval ray_t, hit_rec &rec) const = 0;
   virtual AABB bounding_box() const = 0;
+  virtual double pdf_value(const point3 &o, const vec3 &v) const {
+    (void)o;
+    (void)v;
+    return 0.00000;
+  }
+  virtual vec3 random(const point3 &o) const {
+    (void)o;
+    return vec3(1, 0, 0);
+  }
 };

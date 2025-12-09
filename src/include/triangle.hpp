@@ -12,13 +12,20 @@ class triangle : public hittable {
   AABB aabb;
   vec3 a, b, c;
   shared_ptr<material> mat;
+  double area;
 
 public:
   triangle(vec3 a, vec3 b, vec3 c, shared_ptr<material> m)
       : a(a), b(b), c(c), mat(m) {
     triangle_min_max();
+    auto disAB = distance(a, b);
+    auto disBC = distance(b, c);
+    auto disCA = distance(c, a);
+    auto s = (disAB + disBC + disCA) / 2;
+    area = sqrt(s * (s - disAB) * (s - disBC) * (s - disCA));
   }
 
+  // testing constructor -- not used
   triangle(const point3 &p, double size, shared_ptr<material> m) {
     vec3 p1 = vec3(-size / 2.0, -sqrt(3) * size / 6.0, 0);
     vec3 p2 = vec3(size / 2.0, -sqrt(3) * size / 6.0, 0);
@@ -28,6 +35,21 @@ public:
     c = p3 + p;
     mat = m;
     triangle_min_max();
+  }
+
+  double pdf_value(const point3 &o, const vec3 &v) const override {
+    hit_rec rec;
+    if (!this->hit(ray(o, v), interval(0.0001, infinity), rec))
+      return 0;
+
+    auto distance_squared = rec.t * rec.t * v.length_squared();
+    auto cosine = std::fabs(dot_product(v, rec.norm) / v.length());
+    return distance_squared / (cosine * area);
+  }
+
+  vec3 random(const point3 &o) const override {
+    auto p = a + (random_double() * b) + (random_double() * c);
+    return p - o;
   }
 
   bool hit(const ray &r, interval ray_t, hit_rec &rec) const override {

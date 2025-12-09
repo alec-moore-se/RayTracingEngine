@@ -12,6 +12,9 @@
 #include "include/volume.hpp"
 #include <gtest/gtest.h>
 
+auto empty_light = shared_ptr<material>();
+auto none_light = quadrilateral(point3(0, 0, 0), vec3(), vec3(), empty_light);
+
 void bouncing_spheres() {
 
   hittable_list w;
@@ -77,7 +80,7 @@ void bouncing_spheres() {
   cam.focus_dist = 10.0;
   cam.background_color = color(0.7, .8, 1);
 
-  cam.threaded_render(w);
+  cam.threaded_render(w, none_light);
 }
 
 void testingScene() {
@@ -107,7 +110,7 @@ void testingScene() {
 
   cam.background_color = color(0.6, 0.7, 1.0);
 
-  cam.threaded_render(world);
+  cam.threaded_render(world, none_light);
 }
 
 void triangles() {
@@ -145,7 +148,7 @@ void triangles() {
   cam.focus_dist = 10.0;
   cam.background_color = color(0.7, .8, 1);
 
-  cam.threaded_render(w);
+  cam.threaded_render(w, none_light);
 }
 
 void earth() {
@@ -168,7 +171,7 @@ void earth() {
   cam.defocus_angle = 0;
   cam.background_color = color(0.7, .8, 1);
 
-  cam.threaded_render(hittable_list(globe));
+  cam.threaded_render(hittable_list(globe), none_light);
 }
 
 void perlin_spheres() {
@@ -184,7 +187,7 @@ void perlin_spheres() {
 
   cam.aspect_ratio = 16.0 / 9.0;
   cam.image_width = 400;
-  cam.samples_per_pixel = 100;
+  cam.samples_per_pixel = 10;
   cam.max_depth = 50;
 
   cam.vfov = 20;
@@ -195,7 +198,7 @@ void perlin_spheres() {
   cam.defocus_angle = 0;
   cam.background_color = color(0.7, .8, 1);
 
-  cam.threaded_render(world);
+  cam.threaded_render(world, none_light);
 }
 void quadrilaterals() {
   hittable_list world;
@@ -236,7 +239,7 @@ void quadrilaterals() {
   cam.defocus_angle = 0;
   cam.background_color = color(0.7, .8, 1);
 
-  cam.threaded_render(world);
+  cam.threaded_render(world, none_light);
 }
 
 void simple_light() {
@@ -249,8 +252,9 @@ void simple_light() {
                                 make_shared<lambertian>(pertext)));
 
   auto difflight = make_shared<Diffuse>(color(4, 4, 4));
-  world.add(make_shared<quadrilateral>(point3(3, 1, -2), vec3(2, 0, 0),
-                                       vec3(0, 2, 0), difflight));
+  auto light = make_shared<quadrilateral>(point3(3, 1, -2), vec3(2, 0, 0),
+                                          vec3(0, 2, 0), difflight);
+  world.add(light);
 
   camera cam;
 
@@ -267,11 +271,12 @@ void simple_light() {
 
   cam.defocus_angle = 0;
 
-  cam.threaded_render(world);
+  cam.threaded_render(world, *light);
 }
 
 void cornell_box() {
   hittable_list world;
+  hittable_list lights;
 
   auto red = make_shared<lambertian>(color(.65, .05, .05));
   auto white = make_shared<lambertian>(color(.73, .73, .73));
@@ -282,18 +287,23 @@ void cornell_box() {
                                        vec3(0, 0, 555), green));
   world.add(make_shared<quadrilateral>(point3(0, 0, 0), vec3(0, 555, 0),
                                        vec3(0, 0, 555), red));
-  world.add(make_shared<quadrilateral>(point3(343, 554, 332), vec3(-130, 0, 0),
-                                       vec3(0, 0, -105), light));
+  auto quad_light = make_shared<quadrilateral>(
+      point3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), light);
+  world.add(quad_light);
+  lights.add(quad_light);
   world.add(make_shared<quadrilateral>(point3(0, 0, 0), vec3(555, 0, 0),
                                        vec3(0, 0, 555), white));
   world.add(make_shared<quadrilateral>(point3(555, 555, 555), vec3(-555, 0, 0),
                                        vec3(0, 0, -555), white));
   world.add(make_shared<quadrilateral>(point3(0, 0, 555), vec3(555, 0, 0),
                                        vec3(0, 555, 0), white));
+
   world.add(box(point3(130, 0, 65), point3(295, 165, 230), white));
   world.add(box(point3(265, 0, 295), point3(430, 330, 460), white));
+  shared_ptr<material> aluminum =
+      make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
   shared_ptr<hittable> box1 =
-      box(point3(0, 0, 0), point3(165, 330, 165), white);
+      box(point3(0, 0, 0), point3(165, 330, 165), aluminum);
   box1 = make_shared<rotate>(box1, rotY, 15);
   box1 = make_shared<translate>(box1, vec3(265, 0, 295));
   world.add(box1);
@@ -304,12 +314,16 @@ void cornell_box() {
   box2 = make_shared<translate>(box2, vec3(130, 0, 65));
   world.add(box2);
 
+  auto glass = make_shared<dielectric>(1.5);
+  world.add(make_shared<sphere>(point3(460, 90, 50), 90, glass));
+  // lights.add(make_shared<sphere>(point3(90, 90, 190), 90, glass));
+
   camera cam;
 
   cam.aspect_ratio = 1.0;
-  cam.image_width = 300;
-  cam.samples_per_pixel = 100;
-  cam.max_depth = 30;
+  cam.image_width = 200;
+  cam.samples_per_pixel = 1000;
+  cam.max_depth = 150;
   cam.background_color = color(0, 0, 0);
 
   cam.vfov = 40;
@@ -319,11 +333,14 @@ void cornell_box() {
 
   cam.defocus_angle = 0;
 
-  cam.threaded_render(world);
+  cam.threaded_render(world, lights);
 }
 
 void final_scene(int image_width, int samples_per_pixel, int max_depth) {
   hittable_list boxes1 = hittable_list();
+  hittable_list world;
+  hittable_list lights;
+
   auto ground = make_shared<lambertian>(color(0.48, 0.83, 0.53));
 
   int boxes_per_side = 20;
@@ -341,14 +358,29 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
     }
   }
 
-  hittable_list world;
+  // makes an exploding box
+  // looks coolish, just not "realistic"
+  auto pure_white = make_shared<lambertian>(color(1, 1, 1));
+  shared_ptr<hittable> box_smoke =
+      box(point3(340, 170, 145), point3(465, 330, 165), pure_white);
+  //  auto box_smoke =
+  //      box(point3(-10000000, -10000000, -10000000),
+  //          point3(10000000, 10000000, 10000000), pure_white);
+  world.add(make_shared<absorption>(box_smoke, 0.000001, color(244, 30, 0)));
 
   world.add(make_shared<BVH>(boxes1));
 
   auto light = make_shared<Diffuse>(color(7, 7, 7));
-  world.add(make_shared<quadrilateral>(point3(123, 554, 147), vec3(300, 0, 0),
-                                       vec3(0, 0, 265), light));
+  // different lighting
+  auto tri_light = make_shared<triangle>(
+      point3(0, 500, 200), vec3(500, 400, 700), vec3(800, 600, 100), light);
+  auto empty_tri_light =
+      make_shared<triangle>(point3(0, 500, 200), vec3(500, 400, 700),
+                            vec3(800, 600, 100), empty_light);
+  world.add(tri_light);
+  lights.add(empty_tri_light);
 
+  // motion blur on sphere
   auto center1 = point3(400, 400, 200);
   auto center2 = center1 + vec3(30, 0, 0);
   auto sphere_material = make_shared<lambertian>(color(0.7, 0.3, 0.1));
@@ -356,6 +388,9 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
 
   world.add(make_shared<sphere>(point3(260, 150, 45), 50,
                                 make_shared<dielectric>(1.5)));
+  // having bad interactions with glass in the lights list -
+  // lights.add(make_shared<sphere>(point3(260, 150, 45), 50,
+  // make_shared<dielectric>(1.5)));
   world.add(make_shared<sphere>(point3(0, 150, 145), 50,
                                 make_shared<metal>(color(0.8, 0.8, 0.9), 1.0)));
 
@@ -367,21 +402,19 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
       make_shared<sphere>(point3(0, 0, 0), 5000, make_shared<dielectric>(1.5));
   world.add(make_shared<absorption>(boundary, .0001, color(1, 1, 1)));
 
-  auto pure_white = make_shared<lambertian>(color(1, 1, 1));
-  shared_ptr<hittable> box_smoke =
-      box(point3(340, 170, 145), point3(465, 330, 165), pure_white);
-  world.add(make_shared<absorption>(box_smoke, 0.001, color(0, 0, 0)));
-
   auto emat =
       make_shared<lambertian>(make_shared<Image_Texture>("earthmap.jpg"));
   auto emat2 =
       make_shared<Diffuse>(make_shared<Image_Texture>("kagurabachi.png"));
-  world.add(make_shared<sphere>(point3(400, 200, 400), 100, emat));
-  auto kag = make_shared<quadrilateral>(point3(423, 354, 847), vec3(900, 0, 0),
-                                        vec3(0, 665, 0), emat2);
+  world.add(make_shared<sphere>(point3(400, 200, 300), 2, emat));
+  // fun + image on a quad
+  auto kag = make_shared<quadrilateral>(
+      point3(-223, 154, 9547), vec3(600, 0, 0), vec3(0, 665, 0), emat2);
   world.add(kag);
+  // technically a light source, but do not want
+  // rays to go towards it lights.add(kag);
 
-  auto pertext = make_shared<Noise_Texture>(9.5, Noise_Texture::MARBLE);
+  auto pertext = make_shared<Noise_Texture>(4, Noise_Texture::MARBLE);
   world.add(make_shared<sphere>(point3(220, 280, 300), 80,
                                 make_shared<lambertian>(pertext)));
 
@@ -392,25 +425,27 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
     boxes2.add(make_shared<sphere>(point3::random(0, 165), 10, white));
   }
 
+  // translate and rotate with quaternions
   world.add(make_shared<translate>(
       make_shared<rotate>(make_shared<BVH>(boxes2), rotY, 15),
       vec3(-100, 270, 395)));
 
   camera cam;
 
-  cam.aspect_ratio = 1.0;
+  // camera aspects
+  cam.aspect_ratio = 1;
   cam.image_width = image_width;
   cam.samples_per_pixel = samples_per_pixel;
   cam.max_depth = max_depth;
   cam.background_color = color(0, 0, 0);
 
-  cam.vfov = 40;
+  cam.vfov = 60;
   cam.lookfrom = point3(478, 278, -600);
   cam.lookat = point3(278, 278, 0);
   cam.vup = vec3(0, 1, 0);
   cam.defocus_angle = 0;
 
-  cam.threaded_render(world);
+  cam.threaded_render(world, lights);
 }
 
 void cornell_smoke() {
@@ -425,8 +460,8 @@ void cornell_smoke() {
                                        vec3(0, 0, 555), green));
   world.add(make_shared<quadrilateral>(point3(0, 0, 0), vec3(0, 555, 0),
                                        vec3(0, 0, 555), red));
-  world.add(make_shared<quadrilateral>(point3(113, 554, 127), vec3(330, 0, 0),
-                                       vec3(0, 0, 305), light));
+  auto quad_light = make_shared<quadrilateral>(
+      point3(113, 554, 127), vec3(330, 0, 0), vec3(0, 0, 305), light);
   world.add(make_shared<quadrilateral>(point3(0, 555, 0), vec3(555, 0, 0),
                                        vec3(0, 0, 555), white));
   world.add(make_shared<quadrilateral>(point3(0, 0, 0), vec3(555, 0, 0),
@@ -458,7 +493,7 @@ void cornell_smoke() {
 
   cam.defocus_angle = 0;
 
-  cam.threaded_render(world);
+  cam.threaded_render(world, *quad_light);
 }
 
 void mesh_test_scene() {
@@ -501,7 +536,7 @@ void mesh_test_scene() {
   cam.focus_dist = 10.0;
   cam.background_color = color(0.7, 0.8, 1.0);
 
-  cam.threaded_render(world);
+  cam.threaded_render(world, none_light);
 }
 
 int main(int argc, char *argv[]) {
@@ -535,9 +570,8 @@ int main(int argc, char *argv[]) {
     cornell_smoke();
     break;
   case 8:
-    final_scene(1000, 30, 5);
+    final_scene(400, 100, 200);
     break;
-
   case 9:
     mesh_test_scene();
     break;
