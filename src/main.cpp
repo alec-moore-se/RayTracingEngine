@@ -13,6 +13,8 @@
 #include <gtest/gtest.h>
 
 auto empty_light = shared_ptr<material>();
+// none light does break importance sampling in scenes that use lambertians,
+// however prevents errors and me from deleteing scnees
 auto none_light = quadrilateral(point3(0, 0, 0), vec3(), vec3(), empty_light);
 
 void bouncing_spheres() {
@@ -62,14 +64,18 @@ void bouncing_spheres() {
   auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
   w.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
 
+  auto material4 = make_shared<Diffuse>(color(0.7, 0.6, 0.5));
+  w.add(make_shared<sphere>(point3(8, 1, 0), 1.0, material4));
+
   w = hittable_list(make_shared<BVH>(w));
+  auto l = hittable_list(make_shared<sphere>(point3(8, 1, 0), 1.0, material4));
 
   camera cam;
 
   cam.aspect_ratio = 16.0 / 9.0;
   cam.image_width = 600;
-  cam.samples_per_pixel = 20;
-  cam.max_depth = 15;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
 
   cam.vfov = 50;
   cam.lookfrom = point3(8, 1, 3);
@@ -80,13 +86,13 @@ void bouncing_spheres() {
   cam.focus_dist = 10.0;
   cam.background_color = color(0.7, .8, 1);
 
-  cam.threaded_render(w, none_light);
+  cam.threaded_render(w, l);
 }
 
 void testingScene() {
   hittable_list world;
 
-  auto mat = make_shared<lambertian>(color(0.6, 0.7, 0.9));
+  auto mat = make_shared<lambertian>(color(34.6, 0.7, 0.9));
   auto tall = box(point3(-0.5, 0, -0.5), point3(0.5, 4, 0.5), mat);
 
   auto r1 = make_shared<rotate>(tall, rotZ, 45);
@@ -95,7 +101,8 @@ void testingScene() {
 
   auto r3 = make_shared<rotate>(r2, rotY, 45);
 
-  world.add(r3);
+  auto light = make_shared<Diffuse>(color(7, 7, 7));
+  world.add(tall);
 
   camera cam;
   cam.aspect_ratio = 16.0 / 9.0;
@@ -108,7 +115,7 @@ void testingScene() {
   cam.lookat = point3(0, 1.5, 0);
   cam.vup = vec3(0, 1, 0);
 
-  cam.background_color = color(0.6, 0.7, 1.0);
+  cam.background_color = color(0.5, 0.4, 1.0);
 
   cam.threaded_render(world, none_light);
 }
@@ -131,12 +138,14 @@ void triangles() {
   w.add(make_shared<triangle>(point3(4, 1, 0), 2.0, material3));
 
   w = hittable_list(make_shared<BVH>(w));
+  auto l =
+      hittable_list(make_shared<triangle>(point3(0, 1, 3), 1.0, empty_light));
 
   camera cam;
 
   cam.aspect_ratio = 16.0 / 9.0;
   cam.image_width = 600;
-  cam.samples_per_pixel = 20;
+  cam.samples_per_pixel = 100;
   cam.max_depth = 15;
 
   cam.vfov = 20;
@@ -170,10 +179,37 @@ void earth() {
 
   cam.defocus_angle = 0;
   cam.background_color = color(0.7, .8, 1);
+  auto l =
+      hittable_list(make_shared<triangle>(point3(0, 1, 12), 1.0, empty_light));
 
-  cam.threaded_render(hittable_list(globe), none_light);
+  cam.threaded_render(hittable_list(globe), l);
 }
 
+void vagabond() {
+  auto texture = make_shared<Image_Texture>("vagabond.jpg");
+  auto surface = make_shared<lambertian>(texture);
+  auto square = make_shared<quadrilateral>(point3(-2, -2, 0), vec3(4, 0, 0),
+                                           vec3(0, 4, 0), surface);
+
+  camera cam;
+
+  cam.aspect_ratio = 1;
+  cam.image_width = 400;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
+
+  cam.vfov = 20;
+  cam.lookfrom = point3(0, 0, 12);
+  cam.lookat = point3(0, 0, 0);
+  cam.vup = vec3(0, 1, 0);
+
+  cam.defocus_angle = 0;
+  cam.background_color = color(0.7, .8, 1);
+  auto l =
+      hittable_list(make_shared<triangle>(point3(0, 1, 12), 1.0, empty_light));
+
+  cam.threaded_render(hittable_list(square), l);
+}
 void perlin_spheres() {
   hittable_list world;
   Noise_Texture perlin_sphere(4, Noise_Texture::TURBULENT);
@@ -183,11 +219,14 @@ void perlin_spheres() {
   world.add(make_shared<sphere>(point3(0, 2, 0), 2,
                                 make_shared<lambertian>(pertext)));
 
+  auto l =
+      hittable_list(make_shared<triangle>(point3(0, 1, 3), 1.0, empty_light));
+
   camera cam;
 
   cam.aspect_ratio = 16.0 / 9.0;
   cam.image_width = 400;
-  cam.samples_per_pixel = 10;
+  cam.samples_per_pixel = 100;
   cam.max_depth = 50;
 
   cam.vfov = 20;
@@ -198,7 +237,7 @@ void perlin_spheres() {
   cam.defocus_angle = 0;
   cam.background_color = color(0.7, .8, 1);
 
-  cam.threaded_render(world, none_light);
+  cam.threaded_render(world, l);
 }
 void quadrilaterals() {
   hittable_list world;
@@ -223,7 +262,8 @@ void quadrilaterals() {
                                        vec3(0, 0, 4), upper_orange));
   world.add(make_shared<quadrilateral>(point3(-2, -3, 5), vec3(4, 0, 0),
                                        vec3(0, 0, -4), lower_teal));
-
+  auto l =
+      hittable_list(make_shared<triangle>(point3(0, 1, 3), 1.0, empty_light));
   camera cam;
 
   cam.aspect_ratio = 1.0;
@@ -239,7 +279,7 @@ void quadrilaterals() {
   cam.defocus_angle = 0;
   cam.background_color = color(0.7, .8, 1);
 
-  cam.threaded_render(world, none_light);
+  cam.threaded_render(world, l);
 }
 
 void simple_light() {
@@ -320,7 +360,7 @@ void cornell_box() {
   camera cam;
 
   cam.aspect_ratio = 1.0;
-  cam.image_width = 200;
+  cam.image_width = 500;
   cam.samples_per_pixel = 1000;
   cam.max_depth = 150;
   cam.background_color = color(0, 0, 0);
@@ -439,6 +479,7 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
 
 void cornell_smoke() {
   hittable_list world;
+  hittable_list lights;
 
   auto red = make_shared<lambertian>(color(.65, .05, .05));
   auto white = make_shared<lambertian>(color(.73, .73, .73));
@@ -464,8 +505,11 @@ void cornell_smoke() {
   shared_ptr<hittable> box2 =
       box(point3(0, 0, 0), point3(165, 165, 165), white);
 
-  world.add(make_shared<absorption>(box1, 0.01, color(0, 0, 0)));
+  world.add(make_shared<translate>(
+      make_shared<absorption>(box1, 0.01, color(0, 0, 0)), vec3(100, 50, 100)));
   world.add(make_shared<absorption>(box2, 0.01, color(1, 1, 1)));
+  world.add(quad_light);
+  lights.add(quad_light);
 
   camera cam;
 
@@ -482,7 +526,7 @@ void cornell_smoke() {
 
   cam.defocus_angle = 0;
 
-  cam.threaded_render(world, *quad_light);
+  cam.threaded_render(world, lights);
 }
 
 void mesh_test_scene() {
@@ -500,6 +544,8 @@ void mesh_test_scene() {
   world.add(make_shared<quadrilateral>(point3(123, 554, 147), vec3(300, 0, 0),
                                        vec3(0, 0, 265), light));
 
+  auto l = hittable_list(make_shared<quadrilateral>(
+      point3(123, 554, 147), vec3(300, 0, 0), vec3(0, 0, 265), light));
   std::string path = "images/bunny.obj";
 
   std::vector<triangle> tris = load_mesh(path, mesh_mat);
@@ -525,7 +571,7 @@ void mesh_test_scene() {
   cam.focus_dist = 10.0;
   cam.background_color = color(0.7, 0.8, 1.0);
 
-  cam.threaded_render(world, none_light);
+  cam.threaded_render(world, l);
 }
 
 int main(int argc, char *argv[]) {
@@ -563,6 +609,9 @@ int main(int argc, char *argv[]) {
     break;
   case 9:
     mesh_test_scene();
+    break;
+  case 10:
+    vagabond();
     break;
   case 90:
     testingScene();
