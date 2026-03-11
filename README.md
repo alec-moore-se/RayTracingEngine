@@ -1,6 +1,6 @@
 # Ray Tracing Engine 
 --------------------------
-This ray tracing engine will be able to produce complex images and shapes with varying textures, with other features that one would see in a ray tracing engine.
+This ray tracing engine will be able to produce complex images and shapes with varying textures, with other features that one would see in a ray tracing engine.\
 
 ## Core Components On Completion
 ---------------------------------------
@@ -28,13 +28,13 @@ This ray tracing engine will be able to produce complex images and shapes with v
 
 ### ISU and Author
 -----------------------------
-Author: Alec Moore (Solo Developed)  
-Instructor: Jeremy Sheaffer  
-Course: Introduction to Computer Graphics - 3360  
+Author: Alec Moore (Solo Developed)\
+Instructor: Jeremy Sheaffer  \
+Course: Introduction to Computer Graphics - 3360  \
 
 ### How to Run
 -----------------
-Download the repository
-There is a Makefile that can make the project on any system capable of running C++ compiler
-Then run the command ./raytrace # <-- a number to specify what scene to draw
-New scenes may can be coded in the main file or ported to with an added switch case to draw 
+Download the repository\
+There is a Makefile that can make the project on any system capable of running C++ compiler\
+Then run the command ./raytrace # <-- a number to specify what scene to draw\
+New scenes may can be coded in the main file or ported to with an added switch case to draw
