@@ -1,6 +1,6 @@
 # Ray Tracing Engine 
 --------------------------
-This ray tracing engine will be able to produce complex images and shapes with varying textures, with other features that one would see in a ray tracing engine.\
+This ray tracing engine will be able to produce complex images and shapes with varying textures, with other features that one would see in a ray tracing engine.
 
 ## Core Components On Completion
 ---------------------------------------
@@ -30,7 +30,7 @@ This ray tracing engine will be able to produce complex images and shapes with v
 -----------------------------
 Author: Alec Moore (Solo Developed)\
 Instructor: Jeremy Sheaffer  \
-Course: Introduction to Computer Graphics - 3360  \
+Course: Introduction to Computer Graphics - 3360  
 
 ### How to Run
 -----------------
