@@ -1,114 +1,117 @@
 #pragma once
 #include "commons.hpp"
-#include "vec3.hpp"
 
-// double array for general use case
-template <size_t size, typename T> class square_double_matrix {
-  std::array<T, size> data;
+template <size_t dim_row, size_t dim_col, typename T> class matrix {
+  std::array<std::array<T, dim_col>, dim_row> data;
 
 public:
-  square_double_matrix() {
-    for (size_t i = 0; i < size; i++)
-      data[i] = 0;
+  matrix() { data.fill(0); }
+  matrix(const matrix &m) {
+    for (size_t i = 0; i < dim_row; i++)
+      for (size_t j = 0; j < dim_col; j++)
+        data[i][j] = m(i, j);
+  }
+  matrix(const std::array<std::array<T, dim_col>, dim_row> &m) {
+    for (size_t i = 0; i < dim_row; i++)
+      for (size_t j = 0; j < dim_col; j++)
+        data[i][j] = m[i][j];
   }
 
-  const size_t get_size() const { return size; }
+  const size_t get_dim_row() const { return dim_row; }
+  const size_t get_dim_col() const { return dim_col; }
 
-  T &operator()(size_t i, size_t j) { return data[i * size + j]; }
+  T &operator()(size_t i, size_t j) { return data[i][j]; }
+  const T &operator()(size_t i, size_t j) const { return data[i][j]; }
+  std::array<T, dim_col> &get_row(size_t i) { return data[i]; }
+  std::array<T, dim_row> &get_col(size_t i) {
+    std::array<T, dim_row> temp;
+    for (size_t j = 0; j < dim_row; j++)
+      temp[j] = data[j][i];
+    return temp[i];
+  }
 
-  const T &operator()(size_t i, size_t j) const { return data[i * size + j]; }
-
-  inline square_double_matrix<size, T> &
-  operator*=(const square_double_matrix &m) {
-    for (size_t i = 0; i < size; i++)
-      for (size_t j = 0; j < size; j++)
-        data[i * size + j] *= m(i, j);
+  inline matrix<dim_row, dim_col, T> &
+  operator*=(const matrix<dim_row, dim_col, T> &m) {
+    for (size_t i = 0; i < dim_row; i++)
+      for (size_t j = 0; j < dim_col; j++)
+        data[i][j] *= m(i, j);
     return *this;
   }
 
-  inline square_double_matrix<size, T> &
-  operator*(const square_double_matrix &m) const {
-    for (size_t i = 0; i < size; i++)
-      for (size_t j = 0; j < size; j++)
-        data[i * size + j] += m(i, j);
+  inline matrix<dim_row, dim_col, T> &
+  operator+=(const matrix<dim_row, dim_col, T> &m) {
+    for (size_t i = 0; i < dim_row; i++)
+      for (size_t j = 0; j < dim_col; j++)
+        data[i][j] += m(i, j);
     return *this;
   }
 
-  inline square_double_matrix<size, T> &
-  operator+=(const square_double_matrix &m) {
-    for (size_t i = 0; i < size; i++)
-      for (size_t j = 0; j < size; j++)
-        data[i * size + j] += m(i, j);
+  inline matrix<dim_row, dim_col, T> &
+  operator-=(const matrix<dim_row, dim_col, T> &m) {
+    for (size_t i = 0; i < dim_row; i++)
+      for (size_t j = 0; j < dim_col; j++)
+        data[i][j] -= m(i, j);
+    return *this;
+  }
+  inline matrix<dim_row, dim_col, T> &
+  operator/=(const matrix<dim_row, dim_col, T> &m) {
+    for (size_t i = 0; i < dim_row; i++)
+      for (size_t j = 0; j < dim_col; j++)
+        if (m(i, j) != 0)
+          data[i][j] /= m(i, j);
+        else
+          data[i][j] /= epsilon_dou;
     return *this;
   }
 
-  inline square_double_matrix<size, T> &operator*=(double t) {
-    for (size_t i = 0; i < size; i++)
-      for (size_t j = 0; j < size; j++)
-        data[i * size + j] = data[i * size + j] * t;
+  inline matrix<dim_row, dim_col, T> &
+  operator=(const matrix<dim_row, dim_col, T> &m) {
+    for (size_t i = 0; i < dim_row; i++)
+      for (size_t j = 0; j < dim_col; j++)
+        data[i][j] = m(i, j);
     return *this;
   }
 
-  inline square_double_matrix<size, T> &
-  operator=(const square_double_matrix &m) {
-    for (size_t i = 0; i < size; i++)
-      for (size_t j = 0; j < size; j++)
-        data[i * size + j] = m(i, j);
-    return *this;
-  }
-
-  inline square_double_matrix<size, T> &
-  operator-=(const square_double_matrix &m) {
-    for (size_t i = 0; i < size; i++)
-      for (size_t j = 0; j < size; j++)
-        data[i * size + j] -= m(i, j);
-    return *this;
+  inline void print_matrix() const {
+    for (size_t i = 0; i < dim_row; i++) {
+      for (size_t j = 0; j < dim_col; j++) {
+        std::cout << '[' << data[i][j] << " ";
+      }
+      std::cout << ']' << std::endl;
+    }
+    std::cout << std::endl;
   }
 };
 
-// for vec3 with a c/w
-class vec4 {
-  vec3 v;
-  double w;
+template <size_t dim_row, size_t dim_col, typename T>
+inline matrix<dim_row, dim_col, T>
+operator-(const matrix<dim_row, dim_col, T> &m,
+          const matrix<dim_row, dim_col, T> &n) {
+  matrix<dim_row, dim_col, T> temp;
+  for (size_t i = 0; i < dim_row; i++)
+    for (size_t j = 0; j < dim_col; j++)
+      temp[i][j] = m(i, j) - n(i, j);
+  return temp;
+}
 
-public:
-  vec4() : v(vec3()), w(0) {}
-  vec4(const vec3 &v, double w) : v(v), w(w) {}
-  vec4 &operator*=(double t) {
-    this->v *= t;
-    this->w *= t;
-    return *this;
-  }
-};
+template <size_t dim_row, size_t dim_col, typename T>
+inline matrix<dim_row, dim_col, T>
+operator+(const matrix<dim_row, dim_col, T> &m,
+          const matrix<dim_row, dim_col, T> &n) {
+  matrix<dim_row, dim_col, T> temp;
+  for (size_t i = 0; i < dim_row; i++)
+    for (size_t j = 0; j < dim_col; j++)
+      temp[i][j] = m(i, j) + n(i, j);
+  return temp;
+}
 
-// for the scene graph
-class view_matrix {
-  vec4 x, y, z, c;
-
-public:
-  view_matrix() : x(vec4()), y(vec4()), z(vec4()), c(vec4()) {}
-};
-
-/*
- * Notes:
- * matrix stack (hardcoded in lecture)
- * int stack_base
- * some form of init function??
- *
- * matrix_stack[0][0][0] = 1.0
- * matrix_stack[0][1][1] = 1.0
- * matrix_stack[0][2][2] = 1.0
- * matrix_stack[0][3][3] = 1.0
- *
- * void matrix_stack_pop() {
- *  if(matrix_stack_base)
- *    matrix_stack_base--;
- * }
- *
- *  void matrix_stack_rotz()
- *  {
- *    mult
- *    reulst in next level of a stack
- *  }
- *
- */
+template <size_t dim_row, size_t dim_col, typename T>
+inline matrix<dim_row, dim_col, T>
+operator*(const matrix<dim_row, dim_col, T> &m,
+          const matrix<dim_row, dim_col, T> &n) {
+  matrix<dim_row, dim_col, T> temp;
+  for (size_t i = 0; i < dim_row; i++)
+    for (size_t j = 0; j < dim_col; j++)
+      temp[i][j] = m(i, j) * n(i, j);
+  return temp;
+}
